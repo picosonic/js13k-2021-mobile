@@ -10,3 +10,7 @@ Here is a rough diary of progress as posted on [Twitter](https://twitter.com/fem
 -----------
 For my second attempt at an entry for 2021, I'd like to explore a simple but addictive game which can be played on both mobile and desktop and which may include an element of decentralisation. I'm going to start with a flat 2D game, but may add a 3D aspect to it if time allows.
 
+
+![Playfield generator](aug13.gif?raw=true "Playfield generator")
+
+This is my quick test of playfield generation.
