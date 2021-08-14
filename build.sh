@@ -26,12 +26,12 @@ do
 done
 
 # Add the index header
-echo -n '<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="Content-Type" content="text/html;charset=utf-8"/><title>JS13k 2021</title><style>' > "${indexcat}"
+echo -n '<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="Content-Type" content="text/html;charset=utf-8"/><title>Crater Space</title><style>' > "${indexcat}"
 
 # Inject the concatenated and minified CSS files
 for file in "main.css"
 do
-  yui-compressor "${file}" >> "${indexcat}"
+  JAVA_CMD=java yui-compressor "${file}" >> "${indexcat}"
 done
 
 # Add on the rest of the index file
@@ -41,7 +41,7 @@ echo -n '</style><script type="text/javascript">' >> "${indexcat}"
 ./closeyoureyes.sh "${jscat}" >> "${indexcat}"
 
 # Add on the rest of the index file
-echo -n '</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/></head><body><div id="wrapper"></div></body></html>' >> "${indexcat}"
+echo -n '</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/></head><body><div id="wrapper"></div></body></html>' >> "${indexcat}"
 
 # Remove the minified JS
 rm "${jscat}" >/dev/null 2>&1
