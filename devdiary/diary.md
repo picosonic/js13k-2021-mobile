@@ -14,3 +14,7 @@ For my second attempt at an entry for 2021, I'd like to explore a simple but add
 ![Playfield generator](aug13.gif?raw=true "Playfield generator")
 
 This is my quick test of playfield generation.
+
+14th August
+-----------
+I've decided to name the game Crater Space. Your aim is to create a space within a crater for a moon lander.
