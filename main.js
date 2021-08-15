@@ -2,19 +2,177 @@
 const width=8;
 const height=8;
 
+// Arsenal
+var arsenal={used:0, total:24};
+
+// Record of ammo used during best successful clearance
+var record=0;
+
+// Has the current game finished
+var finished=false;
+
 // Game board array
 var board=[];
 
-// Lookup for board position in 1D array
+// Lookup for board position in 2D array
 function boardpos(x, y)
 {
   return (y*width)+x;
+}
+
+// Show a new status string
+function showstatus(statusstr)
+{
+  document.getElementById("status").innerHTML=statusstr;
+}
+
+// Show best use of ammo to clear everything
+function showrecord()
+{
+  var recordstr="";
+
+  if (record>0)
+    recordstr="Record "+record;
+
+  document.getElementById("record").innerHTML=recordstr;
+}
+
+// Show what ammo we have
+function showammo()
+{
+  document.getElementById("arsenal").innerHTML=arsenal.used;
+}
+
+// If possible use ammo and update counter
+function useammo()
+{
+  if (arsenal.used==arsenal.total) return false;
+
+  arsenal.used++;
+
+  showammo();
+
+  return true;
+}
+
+// Check number of found items
+function checkfound()
+{
+  var found=0;
+  var found102=0;
+  var found103=0;
+  var found104=0;
+  var foundstr="";
+
+  for (var y=0; y<height; y++)
+    for (var x=0; x<width; x++)
+      switch (board[boardpos(x, y)])
+      {
+        case 202: found102++; break;
+        case 203: found103++; break;
+        case 204: found104++; break;
+
+        default:
+          break;
+      }
+  
+  if (found102==2) found++;
+  if (found103==3) found++;
+  if (found104==4) found++;
+
+  for (var i=0; i<3; i++)
+    if (i<found) foundstr+="X "; else foundstr+="[] ";
+
+  document.getElementById("found").innerHTML=foundstr;
+
+  return found;
+}
+
+// Check for game being complete
+function checkfinished()
+{
+  var statusstr="";
+
+  // Check for end of game
+  if ((checkfound()==3) || (arsenal.used==arsenal.total))
+  {
+    finished=true;
+
+    if (checkfound()==3)
+    {
+      statusstr="COMPLETED - WELL DONE";
+      if ((arsenal.used<record) || (record==0))
+      {
+        record=arsenal.used;
+        showrecord();
+      }
+    }
+    else
+      statusstr="TRY AGAIN";
+
+    statusstr+=" <button onclick='resetgame()'>MORE</button>";
+
+    showstatus(statusstr);
+  }
+}
+
+// Board fireed upon
+function fire(x, y)
+{
+  var redraw=false;
+
+  // Don't allow more shots if this game has finished
+  if (finished) return false;
+
+  // Check we have ammo left
+  if (arsenal.used==arsenal.total) return false;
+
+  switch (board[boardpos(x,y)])
+  {
+    case 0:
+      // Miss in a blank square - add a cross
+      board[boardpos(x,y)]=200;
+      redraw=true;
+      break;
+
+    case 102:
+      // Hit on 2 sized entity - mark as hit
+      board[boardpos(x,y)]+=100;
+      redraw=true;
+      break;
+
+    case 103:
+      // Hit on 3 sized entity - mark as hit
+      board[boardpos(x,y)]+=100;
+      redraw=true;
+      break;
+
+    case 104:
+      // Hit on 4 sized entity - mark as hit
+      board[boardpos(x,y)]+=100;
+      redraw=true;
+      break;
+
+    default:
+      break;
+  }
+
+  if (redraw)
+  {
+    useammo();
+    checkfound();
+
+    checkfinished();
+
+    showboard();
+  }
 }
 
 // Show the board on-screen
 function showboard()
 {
   var out="<table>";
+  var n=0;
 
   // Build up some HTML for a quick table to visualise board
   for (var y=0; y<height; y++)
@@ -22,36 +180,14 @@ function showboard()
     out+="<tr>";
 
     for (var x=0; x<width; x++)
-    {
-      // Colour background differently depending on item id
-      switch (board[boardpos(x, y)])
-      {
-        case 0: // Blank empty space
-          out+="<td style='background:black;'></td>";
-          break;
+      out+="<td n='"+(n++)+"' class='p"+board[boardpos(x,y)]+"' onclick='fire("+x+","+y+")'></td>";
 
-        case 102: // 2 piece item
-          out+="<td style='background:red;'></td>";
-          break;
-
-        case 103: // 3 piece item
-          out+="<td style='background:green;'></td>";
-          break;
-
-        case 104: // 4 piece item
-          out+="<td style='background:blue;'></td>";
-          break;
-
-        default: // Error catchall
-          break;
-      }
-    }
     out+="</tr>";
   }
   out+="</table>";
 
-  // Inject table into wrapper
-  document.getElementById("wrapper").innerHTML=out;
+  // Inject table into board
+  document.getElementById("board").innerHTML=out;
 }
 
 // See if an item will fit at given x,y position and given length/orientation
@@ -113,9 +249,6 @@ function generateboard()
   placeitem(0, 2);
   placeitem(1, 3);
   placeitem(2, 4);
-
-  // Show the board on screen
-  showboard();
 }
 
 // Use a decentralised random number source for seeding prng
@@ -161,17 +294,33 @@ function updatedrand()
     });
 }
 
-// Startup called once when page is loaded
-function startup()
+function resetgame()
 {
+  finished=false;
+
   // Attempt to get decentralized random data from drand
   //updatedrand();
 
   // Generate board
   generateboard();
 
-  // For debug - generate a new board every quarter of a second
-  setInterval(function(){ generateboard(); }, 250);
+  // Show the board on screen
+  showboard();
+
+  arsenal.used=0;
+  showammo();
+
+  checkfound();
+
+  showrecord();
+
+  showstatus("");
+}
+
+// Startup called once when page is loaded
+function startup()
+{
+  resetgame();
 }
 
 // Run the startup() once page has loaded

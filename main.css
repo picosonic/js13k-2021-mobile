@@ -1,10 +1,41 @@
 body
 {
-  background:black;
+  background:gray;
 }
 
 td
 {
   width:50px;
   height:50px;
+  background:black;
+}
+
+td.p102
+{
+  background:red;
+}
+
+td.p103
+{
+  background:green;
+}
+
+td.p104
+{
+  background:blue;
+}
+
+td.p200
+{
+  background: yellow;
+}
+
+td.p202, td.p203, td.p204
+{
+  background: orange;
+}
+
+#arsenal, #found, #record, #status
+{
+  font-size:30px;
 }
