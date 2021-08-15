@@ -21,4 +21,4 @@ I've decided to name the game Crater Space. Your aim is to create a space within
 
 15th August
 -----------
-Stopped debug playfield generator. Added arsenal display (bombs used), indicator of hit/miss on board, items destroyed indicator, best clearance record (least used shots to find everything). Added game finished detection with option to replay.
+Stopped debug playfield generator. Added arsenal display (bombs used), indicator of hit/miss on board, items destroyed indicator, best clearance record (least used shots to find everything). Added game finished detection with option to replay. Converted from table to canvas.

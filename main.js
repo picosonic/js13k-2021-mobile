@@ -14,6 +14,9 @@ var finished=false;
 // Game board array
 var board=[];
 
+var canvas=null;
+var ctx=null;
+
 // Lookup for board position in 2D array
 function boardpos(x, y)
 {
@@ -171,23 +174,51 @@ function fire(x, y)
 // Show the board on-screen
 function showboard()
 {
-  var out="<table>";
   var n=0;
 
   // Build up some HTML for a quick table to visualise board
   for (var y=0; y<height; y++)
-  {
-    out+="<tr>";
-
     for (var x=0; x<width; x++)
-      out+="<td n='"+(n++)+"' class='p"+board[boardpos(x,y)]+"' onclick='fire("+x+","+y+")'></td>";
+    {
+      switch(board[boardpos(x,y)])
+      {
+        case 102:
+          ctx.fillStyle="#FF0000";
+          break;
 
-    out+="</tr>";
-  }
-  out+="</table>";
+        case 103:
+          ctx.fillStyle="#00FF00";
+          break;
 
-  // Inject table into board
-  document.getElementById("board").innerHTML=out;
+        case 104:
+          ctx.fillStyle="#0000FF";
+          break;
+
+        case 200:
+          ctx.fillStyle="#FFFF00";
+          break;
+
+        case 202:
+        case 203:
+        case 204:
+          ctx.fillStyle="#FFA500";
+          break;
+  
+        default:
+          ctx.fillStyle="#000000";
+          break;
+      }
+      ctx.fillRect(x*50, y*50, 50, 50);
+    }
+}
+
+// Handle clicks on canvas
+function canvasclick(cx, cy)
+{
+  var x=cx-(canvas.offsetLeft+canvas.clientLeft);
+  var y=cy-(canvas.offsetTop+canvas.clientTop);
+
+  fire(Math.floor(x/(canvas.clientWidth/8)), Math.floor(y/(canvas.clientWidth/8)));
 }
 
 // See if an item will fit at given x,y position and given length/orientation
@@ -317,10 +348,40 @@ function resetgame()
   showstatus("");
 }
 
+// Action a browser resize
+function resize()
+{
+ var aspectratio=400/400;
+ var newx, newy;
+
+ if ((window.innerWidth/window.innerHeight)<aspectratio)
+ {
+   newx=window.innerWidth;
+   newy=window.innerWidth/aspectratio;
+ }
+ else
+ {
+   newy=window.innerHeight;
+   newx=window.innerHeight*aspectratio;
+ }
+
+  document.getElementById("inner").style.width=newx+"px";
+  document.getElementById("inner").style.height=newy+"px";
+}
+
 // Startup called once when page is loaded
 function startup()
 {
+  canvas=document.getElementById("board");
+  ctx=canvas.getContext("2d");
+
+  canvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
+
   resetgame();
+
+  // Handle resizing and device rotation
+  window.onresize=resize;
+  resize();
 }
 
 // Run the startup() once page has loaded
