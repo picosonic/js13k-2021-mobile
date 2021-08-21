@@ -17,6 +17,9 @@ var finished=false;
 // Game board array
 var board=[];
 
+// Spills
+var spills=[];
+
 var canvas=null;
 var ctx=null;
 
@@ -201,7 +204,7 @@ function showboard()
 
         case 200:
           //ctx.fillStyle="#FFFF00";
-          drawsplat(x, y, '#18d618');
+          drawspill(x, y, '#18d618');
           continue;
           break;
 
@@ -209,7 +212,7 @@ function showboard()
         case 203:
         case 204:
           //ctx.fillStyle="#FFA500";
-          drawsplat(x, y, '#ef2d76');
+          drawspill(x, y, '#ef2d76');
           continue;
           break;
   
@@ -342,6 +345,7 @@ function updatedrand()
 function resetgame()
 {
   finished=false;
+  spills=[];
 
   // Attempt to get decentralized random data from drand
   //updatedrand();
@@ -383,13 +387,14 @@ function resize()
   document.getElementById("inner").style.height=newy+"px";
 }
 
-function drawsplat(x, y, style)
+function drawspill(x, y, style)
 {
   var cx, cy, cr, sx, sy;
   var nspill=11;
-  var spills=[];
+  var thisspill=[];
+  var sp=""+x+","+y;
   var i;
-  
+
   cx=Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
   cy=Math.floor((y*gridsize)+(gridsize/2))+Math.floor(rng()*2);
   cr=gridsize*(0.28);
@@ -399,26 +404,69 @@ function drawsplat(x, y, style)
   ctx.beginPath();
   ctx.arc(cx, cy, cr, 0, 2*Math.PI);
   ctx.fill();
-  
-  // Generate spills
+
+  if (spills[sp]==undefined)
+  {
+    // Generate spills
+    for (i=0; i<nspill; i++)
+    {
+      thisspill[i]={
+        x:cx, // Start x position
+        y:cy, // Start y position
+        t:Math.floor(rng()*20)*5, // Travel
+        a:(Math.floor(rng()*30)*12), // Angle to eminate from
+        r:Math.floor(cr*((rng()*0.17)+0.24)), // Radius of spill
+        d:Math.floor(cr*2*((rng()*0.19)+0.56)) // Distance from start for where to finish up
+      };
+    }
+    spills[sp]=thisspill;
+  }
+
+  // Draw spills
   for (i=0; i<nspill; i++)
   {
-    spills[i]={
-      x:cx, // Start x position
-      y:cy, // Start y position
-      a:(Math.floor(rng()*30)*12), // Angle to eminate from
-      r:Math.floor(cr*((rng()*0.17)+0.24)), // Radius of spill
-      d:Math.floor(cr*2*((rng()*0.10)+0.56)) // Distance from start for where to finish up
-    };
-    
-    // Draw spill
-    sx=spills[i].d*Math.cos(spills[i].a);
-    sy=spills[i].d*Math.sin(spills[i].a);
-    ctx.beginPath();
-    ctx.arc(cx+sx, cy+sy, spills[i].r, 0, 2*Math.PI);
-    ctx.fill();
-    
-    console.log(spills[i]);
+    if (spills[sp][i].t<100)
+    {
+      // Draw spill
+      var ss=spills[sp][i].r;
+
+      if (spills[sp][i].t>70)
+      {
+        switch (spills[sp][i].t)
+        {
+          case 75:
+            ss*=0.50;
+            break;
+
+          case 80:
+            ss*=0.20;
+            break;
+
+          case 85:
+            ss*=0.10;
+            break;
+
+          case 90:
+            ss*=0.20;
+            break;
+
+          case 95:
+            ss*=0.50;
+            break;
+
+          default:
+            break;
+        }
+      }
+
+      sx=(spills[sp][i].d*(spills[sp][i].t/100))*Math.cos(spills[sp][i].a);
+      sy=(spills[sp][i].d*(spills[sp][i].t/100))*Math.sin(spills[sp][i].a);
+      ctx.beginPath();
+      ctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
+      ctx.fill();
+
+      spills[sp][i].t+=5;
+    }
   }
 }
 
