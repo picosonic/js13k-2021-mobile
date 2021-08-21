@@ -22,3 +22,9 @@ I've decided to name the game Crater Space. Your aim is to create a space within
 15th August
 -----------
 Stopped debug playfield generator. Added arsenal display (bombs used), indicator of hit/miss on board, items destroyed indicator, best clearance record (least used shots to find everything). Added game finished detection with option to replay. Converted from table to canvas.
+
+21st August
+-----------
+Hid the targets so that you now have to play to find them. Show shots as splats on the grid. Made the game more random by progressing the prng every frame, also only generate first grid after user click.
+
+![Splatting battleships](aug21.gif?raw=true "Splatting battleships")
