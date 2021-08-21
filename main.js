@@ -1,9 +1,12 @@
 // Define game board width/height
 const width=8;
 const height=8;
+const gridsize=50;
 
 // Arsenal
 var arsenal={used:0, total:24};
+
+var generated=false;
 
 // Record of ammo used during best successful clearance
 var record=0;
@@ -180,35 +183,40 @@ function showboard()
   for (var y=0; y<height; y++)
     for (var x=0; x<width; x++)
     {
+      ctx.fillStyle="#000000";
+
       switch(board[boardpos(x,y)])
       {
         case 102:
-          ctx.fillStyle="#FF0000";
+          //ctx.fillStyle="#FF0000";
           break;
 
         case 103:
-          ctx.fillStyle="#00FF00";
+          //ctx.fillStyle="#00FF00";
           break;
 
         case 104:
-          ctx.fillStyle="#0000FF";
+          //ctx.fillStyle="#0000FF";
           break;
 
         case 200:
-          ctx.fillStyle="#FFFF00";
+          //ctx.fillStyle="#FFFF00";
+          drawsplat(x, y, '#18d618');
+          continue;
           break;
 
         case 202:
         case 203:
         case 204:
-          ctx.fillStyle="#FFA500";
+          //ctx.fillStyle="#FFA500";
+          drawsplat(x, y, '#ef2d76');
+          continue;
           break;
   
         default:
-          ctx.fillStyle="#000000";
           break;
       }
-      ctx.fillRect(x*50, y*50, 50, 50);
+      ctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
     }
 }
 
@@ -217,6 +225,12 @@ function canvasclick(cx, cy)
 {
   var x=cx-(canvas.offsetLeft+canvas.clientLeft);
   var y=cy-(canvas.offsetTop+canvas.clientTop);
+  
+  if (!generated)
+  {
+    generateboard();
+    generated=true;
+  }
 
   fire(Math.floor(x/(canvas.clientWidth/8)), Math.floor(y/(canvas.clientWidth/8)));
 }
@@ -369,9 +383,57 @@ function resize()
   document.getElementById("inner").style.height=newy+"px";
 }
 
+function drawsplat(x, y, style)
+{
+  var cx, cy, cr, sx, sy;
+  var nspill=11;
+  var spills=[];
+  var i;
+  
+  cx=Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
+  cy=Math.floor((y*gridsize)+(gridsize/2))+Math.floor(rng()*2);
+  cr=gridsize*(0.28);
+  
+  // Draw central splat
+  ctx.fillStyle=style;
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr, 0, 2*Math.PI);
+  ctx.fill();
+  
+  // Generate spills
+  for (i=0; i<nspill; i++)
+  {
+    spills[i]={
+      x:cx, // Start x position
+      y:cy, // Start y position
+      a:(Math.floor(rng()*30)*12), // Angle to eminate from
+      r:Math.floor(cr*((rng()*0.17)+0.24)), // Radius of spill
+      d:Math.floor(cr*2*((rng()*0.10)+0.56)) // Distance from start for where to finish up
+    };
+    
+    // Draw spill
+    sx=spills[i].d*Math.cos(spills[i].a);
+    sy=spills[i].d*Math.sin(spills[i].a);
+    ctx.beginPath();
+    ctx.arc(cx+sx, cy+sy, spills[i].r, 0, 2*Math.PI);
+    ctx.fill();
+    
+    console.log(spills[i]);
+  }
+}
+
+function advancerng()
+{
+  var a=rng();
+  showboard();
+  window.requestAnimationFrame(advancerng);
+}
+
 // Startup called once when page is loaded
 function startup()
 {
+  window.requestAnimationFrame(advancerng);
+
   canvas=document.getElementById("board");
   ctx=canvas.getContext("2d");
 
