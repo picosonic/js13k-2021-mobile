@@ -430,42 +430,18 @@ function drawspill(x, y, style)
       // Draw spill
       var ss=spills[sp][i].r;
 
+      // Adjust spillage size based on travel
       if (spills[sp][i].t>70)
-      {
-        switch (spills[sp][i].t)
-        {
-          case 75:
-            ss*=0.50;
-            break;
+        ss*=((Math.cos((30-(100-spills[sp][i].t))/(30/(2*Math.PI)))+1)/2);
 
-          case 80:
-            ss*=0.20;
-            break;
-
-          case 85:
-            ss*=0.10;
-            break;
-
-          case 90:
-            ss*=0.20;
-            break;
-
-          case 95:
-            ss*=0.50;
-            break;
-
-          default:
-            break;
-        }
-      }
-
+      // Adjust distance from centre based on travel time
       sx=(spills[sp][i].d*(spills[sp][i].t/100))*Math.cos(spills[sp][i].a);
       sy=(spills[sp][i].d*(spills[sp][i].t/100))*Math.sin(spills[sp][i].a);
       ctx.beginPath();
       ctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
       ctx.fill();
 
-      spills[sp][i].t+=5;
+      spills[sp][i].t+=2;
     }
   }
 }
