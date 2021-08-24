@@ -219,7 +219,7 @@ function showboard()
         default:
           break;
       }
-      ctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
+      //ctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
     }
 }
 
@@ -347,6 +347,9 @@ function resetgame()
   finished=false;
   spills=[];
 
+  // Clear canvas
+  ctx.clearRect(0, 0, 400, 400);
+
   // Attempt to get decentralized random data from drand
   //updatedrand();
 
@@ -392,7 +395,7 @@ function drawspill(x, y, style)
   var cx, cy, cr, sx, sy;
   var nspill=11;
   var thisspill=[];
-  var sp=""+x+","+y;
+  var sp=(y*gridsize)+x;
   var i;
 
   cx=Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
@@ -441,7 +444,7 @@ function drawspill(x, y, style)
       ctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
       ctx.fill();
 
-      spills[sp][i].t+=2;
+      spills[sp][i].t+=10;
     }
   }
 }
@@ -456,6 +459,9 @@ function advancerng()
 // Startup called once when page is loaded
 function startup()
 {
+  threedeeinit();
+  gsthreedee.start();
+
   window.requestAnimationFrame(advancerng);
 
   canvas=document.getElementById("board");
@@ -464,6 +470,36 @@ function startup()
   canvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
 
   resetgame();
+ 
+  var elem=document.createElement("div");
+  elem.innerHTML=titlewrite(0, 0, 100, "CRATER SPACE");
+ 
+  var xml = new XMLSerializer().serializeToString(elem.firstChild);
+  var svg64 = btoa(xml);
+  var b64Start = 'data:image/svg+xml;base64,';
+  var image64 = b64Start + svg64;
+  var img=new Image();
+  img.onload = function() {
+    // draw the image onto the canvas
+    ctx.imageSmoothingEnabled = false;
+    ctx.mozimageSmoothingEnabled = false;
+    ctx.drawImage(img, 0, 0, 600, 100);
+}
+img.src = image64;
+
+  // Draw a grid
+  for (var ts=0; ts<10; ts++)
+  {
+    ctx.beginPath();
+    ctx.moveTo(ts*gridsize, 0);
+    ctx.lineTo(ts*gridsize, 800);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, ts*gridsize);
+    ctx.lineTo(800, ts*gridsize);
+    ctx.stroke();
+  }
 
   // Handle resizing and device rotation
   window.onresize=resize;
