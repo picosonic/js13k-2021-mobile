@@ -404,8 +404,11 @@ function resize()
    orientation="landscape";
  }
 
-  document.getElementById("inner").style.width=newx+"px";
-  document.getElementById("inner").style.height=newy+"px";
+  canvas.style.width=newx+"px";
+  canvas.style.height=newy+"px";
+
+  gsthreedee.canvas.style.width=newx+"px";
+  gsthreedee.canvas.style.height=newy+"px";
 }
 
 function drawspill(x, y, style)
@@ -506,8 +509,8 @@ function startup()
 img.src = image64;
 
   // Handle resizing and device rotation
-  window.onresize=resize;
   resize();
+  window.addEventListener("resize", resize);
 }
 
 // Run the startup() once page has loaded
