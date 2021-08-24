@@ -1,6 +1,5 @@
-// Define game board width/height
-const width=8;
-const height=8;
+// Define game board dimensions
+const dimension=8;
 const gridsize=50;
 
 // Arsenal
@@ -23,10 +22,12 @@ var spills=[];
 var canvas=null;
 var ctx=null;
 
+var orientation="landscape";
+
 // Lookup for board position in 2D array
 function boardpos(x, y)
 {
-  return (y*width)+x;
+  return (y*dimension)+x;
 }
 
 // Show a new status string
@@ -73,8 +74,8 @@ function checkfound()
   var found104=0;
   var foundstr="";
 
-  for (var y=0; y<height; y++)
-    for (var x=0; x<width; x++)
+  for (var y=0; y<dimension; y++)
+    for (var x=0; x<dimension; x++)
       switch (board[boardpos(x, y)])
       {
         case 202: found102++; break;
@@ -129,6 +130,7 @@ function checkfinished()
 function fire(x, y)
 {
   var redraw=false;
+  var hit=false;
 
   // Don't allow more shots if this game has finished
   if (finished) return false;
@@ -147,19 +149,19 @@ function fire(x, y)
     case 102:
       // Hit on 2 sized entity - mark as hit
       board[boardpos(x,y)]+=100;
-      redraw=true;
+      redraw=true; hit=true;
       break;
 
     case 103:
       // Hit on 3 sized entity - mark as hit
       board[boardpos(x,y)]+=100;
-      redraw=true;
+      redraw=true; hit=true;
       break;
 
     case 104:
       // Hit on 4 sized entity - mark as hit
       board[boardpos(x,y)]+=100;
-      redraw=true;
+      redraw=true; hit=true;
       break;
 
     default:
@@ -168,7 +170,7 @@ function fire(x, y)
 
   if (redraw)
   {
-    useammo();
+    if (!hit) useammo();
     checkfound();
 
     checkfinished();
@@ -183,8 +185,8 @@ function showboard()
   var n=0;
 
   // Build up some HTML for a quick table to visualise board
-  for (var y=0; y<height; y++)
-    for (var x=0; x<width; x++)
+  for (var y=0; y<dimension; y++)
+    for (var x=0; x<dimension; x++)
     {
       ctx.fillStyle="#000000";
 
@@ -247,13 +249,13 @@ function fits(x, y, itemlength, orientation)
     if (orientation==0)
     {
       // Check vertical
-      if ((x>=width) || (y+i>=width)) return false;
+      if ((x>=dimension) || (y+i>=dimension)) return false;
       if (board[boardpos(x, y+i)]>100) return false;
     }
     else
     {
       // Check horizontal
-      if ((x+i>=width) || (y>=width)) return false;
+      if ((x+i>=dimension) || (y>=dimension)) return false;
       if (board[boardpos(x+i, y)]>100) return false;
     }
   }
@@ -269,8 +271,8 @@ function placeitem(itemnumber, itemlength)
   while (1)
   {
     var orientation = Math.floor(rng()*1000) % 2;
-    var x = Math.floor(rng() * width);
-    var y = Math.floor(rng() * height);
+    var x = Math.floor(rng() * dimension);
+    var y = Math.floor(rng() * dimension);
 
     // If it fits at this random position, then we're all good
     if (fits(x, y, itemlength, orientation))
@@ -289,8 +291,8 @@ function placeitem(itemnumber, itemlength)
 function generateboard()
 {
   // Empty the board first
-  for (var y=0; y<height; y++)
-    for (var x=0; x<width; x++)
+  for (var y=0; y<dimension; y++)
+    for (var x=0; x<dimension; x++)
       board[boardpos(x, y)]=0;
 
   // Place the items
@@ -350,6 +352,20 @@ function resetgame()
   // Clear canvas
   ctx.clearRect(0, 0, 400, 400);
 
+  // Draw targetting grid
+  for (var ts=0; ts<=dimension; ts++)
+  {
+    ctx.beginPath();
+    ctx.moveTo(ts*gridsize, 0);
+    ctx.lineTo(ts*gridsize, gridsize*dimension);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, ts*gridsize);
+    ctx.lineTo(gridsize*dimension, ts*gridsize);
+    ctx.stroke();
+  }
+
   // Attempt to get decentralized random data from drand
   //updatedrand();
 
@@ -379,11 +395,13 @@ function resize()
  {
    newx=window.innerWidth;
    newy=window.innerWidth/aspectratio;
+   orientation="portrait";
  }
  else
  {
    newy=window.innerHeight;
    newx=window.innerHeight*aspectratio;
+   orientation="landscape";
  }
 
   document.getElementById("inner").style.width=newx+"px";
@@ -395,7 +413,7 @@ function drawspill(x, y, style)
   var cx, cy, cr, sx, sy;
   var nspill=11;
   var thisspill=[];
-  var sp=(y*gridsize)+x;
+  var sp=boardpos(x, y);
   var i;
 
   cx=Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
@@ -486,20 +504,6 @@ function startup()
     ctx.drawImage(img, 0, 0, 600, 100);
 }
 img.src = image64;
-
-  // Draw a grid
-  for (var ts=0; ts<10; ts++)
-  {
-    ctx.beginPath();
-    ctx.moveTo(ts*gridsize, 0);
-    ctx.lineTo(ts*gridsize, 800);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, ts*gridsize);
-    ctx.lineTo(800, ts*gridsize);
-    ctx.stroke();
-  }
 
   // Handle resizing and device rotation
   window.onresize=resize;
