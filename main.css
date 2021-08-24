@@ -6,6 +6,8 @@
   user-select:none; /* Chrome and Opera */
   -webkit-user-select:none; /* Safari */
   -moz-user-select:none; /* Firefox */
+
+  touch-action:none; /* disable panning/zooming gestures */
 }
 
 body
