@@ -19,8 +19,10 @@ var board=[];
 // Spills
 var spills=[];
 
-var canvas=null;
-var ctx=null;
+var boardcanvas=null;
+var boardctx=null;
+var titlecanvas=null;
+var titlectx=null;
 
 var orientation="landscape";
 
@@ -188,24 +190,24 @@ function showboard()
   for (var y=0; y<dimension; y++)
     for (var x=0; x<dimension; x++)
     {
-      ctx.fillStyle="#000000";
+      boardctx.fillStyle="#000000";
 
       switch(board[boardpos(x,y)])
       {
         case 102:
-          //ctx.fillStyle="#FF0000";
+          //boardctx.fillStyle="#FF0000";
           break;
 
         case 103:
-          //ctx.fillStyle="#00FF00";
+          //boardctx.fillStyle="#00FF00";
           break;
 
         case 104:
-          //ctx.fillStyle="#0000FF";
+          //boardctx.fillStyle="#0000FF";
           break;
 
         case 200:
-          //ctx.fillStyle="#FFFF00";
+          //boardctx.fillStyle="#FFFF00";
           drawspill(x, y, '#18d618');
           continue;
           break;
@@ -213,7 +215,7 @@ function showboard()
         case 202:
         case 203:
         case 204:
-          //ctx.fillStyle="#FFA500";
+          //boardctx.fillStyle="#FFA500";
           drawspill(x, y, '#ef2d76');
           continue;
           break;
@@ -221,15 +223,15 @@ function showboard()
         default:
           break;
       }
-      //ctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
+      //boardctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
     }
 }
 
 // Handle clicks on canvas
 function canvasclick(cx, cy)
 {
-  var x=cx-(canvas.offsetLeft+canvas.clientLeft);
-  var y=cy-(canvas.offsetTop+canvas.clientTop);
+  var x=cx-(boardcanvas.offsetLeft+boardcanvas.clientLeft);
+  var y=cy-(boardcanvas.offsetTop+boardcanvas.clientTop);
   
   if (!generated)
   {
@@ -237,7 +239,7 @@ function canvasclick(cx, cy)
     generated=true;
   }
 
-  fire(Math.floor(x/(canvas.clientWidth/8)), Math.floor(y/(canvas.clientWidth/8)));
+  fire(Math.floor(x/(boardcanvas.clientWidth/8)), Math.floor(y/(boardcanvas.clientWidth/8)));
 }
 
 // See if an item will fit at given x,y position and given length/orientation
@@ -350,20 +352,20 @@ function resetgame()
   spills=[];
 
   // Clear canvas
-  ctx.clearRect(0, 0, 400, 400);
+  boardctx.clearRect(0, 0, 400, 400);
 
   // Draw targetting grid
   for (var ts=0; ts<=dimension; ts++)
   {
-    ctx.beginPath();
-    ctx.moveTo(ts*gridsize, 0);
-    ctx.lineTo(ts*gridsize, gridsize*dimension);
-    ctx.stroke();
+    boardctx.beginPath();
+    boardctx.moveTo(ts*gridsize, 0);
+    boardctx.lineTo(ts*gridsize, gridsize*dimension);
+    boardctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(0, ts*gridsize);
-    ctx.lineTo(gridsize*dimension, ts*gridsize);
-    ctx.stroke();
+    boardctx.beginPath();
+    boardctx.moveTo(0, ts*gridsize);
+    boardctx.lineTo(gridsize*dimension, ts*gridsize);
+    boardctx.stroke();
   }
 
   // Attempt to get decentralized random data from drand
@@ -404,11 +406,17 @@ function resize()
    orientation="landscape";
  }
 
-  canvas.style.width=newx+"px";
-  canvas.style.height=newy+"px";
+  boardcanvas.style.width=newx+"px";
+  boardcanvas.style.height=newy+"px";
+  boardcanvas.setAttribute("orientation", orientation);
 
   gsthreedee.canvas.style.width=newx+"px";
   gsthreedee.canvas.style.height=newy+"px";
+  gsthreedee.canvas.setAttribute("orientation", orientation);
+
+  titlecanvas.style.width=newx+"px";
+  titlecanvas.style.height=newy+"px";
+  titlecanvas.setAttribute("orientation", orientation);
 }
 
 function drawspill(x, y, style)
@@ -424,10 +432,10 @@ function drawspill(x, y, style)
   cr=gridsize*(0.28);
   
   // Draw central splat
-  ctx.fillStyle=style;
-  ctx.beginPath();
-  ctx.arc(cx, cy, cr, 0, 2*Math.PI);
-  ctx.fill();
+  boardctx.fillStyle=style;
+  boardctx.beginPath();
+  boardctx.arc(cx, cy, cr, 0, 2*Math.PI);
+  boardctx.fill();
 
   if (spills[sp]==undefined)
   {
@@ -461,9 +469,9 @@ function drawspill(x, y, style)
       // Adjust distance from centre based on travel time
       sx=(spills[sp][i].d*(spills[sp][i].t/100))*Math.cos(spills[sp][i].a);
       sy=(spills[sp][i].d*(spills[sp][i].t/100))*Math.sin(spills[sp][i].a);
-      ctx.beginPath();
-      ctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
-      ctx.fill();
+      boardctx.beginPath();
+      boardctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
+      boardctx.fill();
 
       spills[sp][i].t+=10;
     }
@@ -485,10 +493,12 @@ function startup()
 
   window.requestAnimationFrame(advancerng);
 
-  canvas=document.getElementById("board");
-  ctx=canvas.getContext("2d");
-
-  canvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
+  boardcanvas=document.getElementById("board");
+  boardctx=boardcanvas.getContext("2d");
+  titlecanvas=document.getElementById("title");
+  titlectx=titlecanvas.getContext("2d");
+  
+  boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
 
   resetgame();
  
@@ -502,9 +512,9 @@ function startup()
   var img=new Image();
   img.onload = function() {
     // draw the image onto the canvas
-    ctx.imageSmoothingEnabled = false;
-    ctx.mozimageSmoothingEnabled = false;
-    ctx.drawImage(img, 0, 0, 600, 100);
+    titlectx.imageSmoothingEnabled = false;
+    titlectx.mozimageSmoothingEnabled = false;
+    titlectx.drawImage(img, 0, 0, 600, 100);
 }
 img.src = image64;
 

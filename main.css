@@ -19,7 +19,7 @@ body
 #wrapper
 {
   position:absolute;
-  background:#444;
+  background:#999;
   left:0px;
   top:0px;
   width:100%;
@@ -45,11 +45,29 @@ canvas
   image-rendering:crisp-edges;
 }
 
-#board
+#title[orientation="portrait"]
 {
   z-index:2;
 }
 
+#title[orientation="landscape"]
+{
+  transform:rotate(270deg) translate(10px,0px);
+  transform-origin:50% 50%;
+  z-index:2;
+}
+
+#board[orientation="portrait"]
+{
+  top:20vw;
+  z-index:3;
+}
+
+#board[orientation="landscape"]
+{
+  left:20vh;
+  z-index:3;
+}
 
 #threedee
 {
