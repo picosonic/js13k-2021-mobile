@@ -41,7 +41,7 @@ echo -n '</style><script type="text/javascript">' >> "${indexcat}"
 ./closeyoureyes.sh "${jscat}" >> "${indexcat}"
 
 # Add on the rest of the index file
-echo -n '</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/></head><body><canvas id="threedee" width="400" height="400"></canvas><div id="outer"><div id="inner"><canvas id="board" width="400" height="400"></canvas></div><div id="info"><div id="arsenal"></div><div id="found"></div><div id="record"></div><div id="status"></div></div></div><div id="text" style="display:none;"></div></body></html>' >> "${indexcat}"
+echo -n '</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/></head><body><div id="wrapper"><canvas id="title" width="400" height="400"></canvas><canvas id="threedee" width="400" height="400"></canvas><canvas id="board" width="400" height="400"></canvas><div id="info"><div id="arsenal"></div><div id="found"></div><div id="record"></div><div id="status"></div></div></div></body></html>' >> "${indexcat}"
 
 # Remove the minified JS
 rm "${jscat}" >/dev/null 2>&1
