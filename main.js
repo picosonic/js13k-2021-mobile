@@ -116,6 +116,11 @@ function checkfinished()
       if ((arsenal.used<record) || (record==0))
       {
         record=arsenal.used;
+        try
+        {
+          localStorage.craterspace_record=record;
+        }
+        catch (e) {}
         showrecord();
       }
     }
@@ -488,6 +493,15 @@ function advancerng()
 // Startup called once when page is loaded
 function startup()
 {
+  // Try to retrieve record from local storage
+  try
+  {
+    const bestrecord=localStorage.craterspace_record;
+    if ((bestrecord!=null) && (bestrecord!=undefined))
+      record=parseInt(bestrecord, 10);
+  }
+  catch (e) {}
+
   threedeeinit();
   gsthreedee.start();
 
@@ -515,8 +529,8 @@ function startup()
     titlectx.imageSmoothingEnabled = false;
     titlectx.mozimageSmoothingEnabled = false;
     titlectx.drawImage(img, 0, 0, 600, 100);
-}
-img.src = image64;
+  }
+  img.src=image64;
 
   // Handle resizing and device rotation
   resize();

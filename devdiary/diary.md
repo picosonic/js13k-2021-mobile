@@ -28,3 +28,9 @@ Stopped debug playfield generator. Added arsenal display (bombs used), indicator
 Hid the targets so that you now have to play to find them. Show shots as splats on the grid. Made the game more random by progressing the prng every frame, also only generate first grid after user click.
 
 ![Splatting battleships](aug21.gif?raw=true "Splatting battleships")
+
+1st September
+-------------
+Added orientation sensitive placement of canvas areas.
+
+Added storing/retrieving of the record number of misses before completion into localstorage.
