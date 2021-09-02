@@ -16,6 +16,9 @@ var finished=false;
 // Game board array
 var board=[];
 
+// Enemy positions
+var enemies=[];
+
 // Spills
 var spills=[];
 
@@ -24,7 +27,10 @@ var boardctx=null;
 var titlecanvas=null;
 var titlectx=null;
 
-var orientation="landscape";
+var img=new Image();
+var imgspr=new Image();
+
+var devorientation="landscape";
 
 // Lookup for board position in 2D array
 function boardpos(x, y)
@@ -52,7 +58,18 @@ function showrecord()
 // Show what ammo we have
 function showammo()
 {
-  document.getElementById("arsenal").innerHTML=arsenal.used;
+  var out="";
+  var i;
+
+  for (i=0; i<arsenal.total; i++)
+  {
+    if (i<arsenal.used)
+      out+=bombsprite.replace('#36bbf5', '#333').replace('#1884b4', '#222').replace('#78888c','#444').replace('#bdd6db','#555').replace('#a1b6bb','#666');
+    else
+      out+=bombsprite;
+  }
+
+  document.getElementById("arsenal").innerHTML=out;
 }
 
 // If possible use ammo and update counter
@@ -100,6 +117,12 @@ function checkfound()
   return found;
 }
 
+function showenemies()
+{
+  for (var i=0; i<enemies.length; i++)
+    boardctx.drawImage(imgspr, enemies[i].x*gridsize, enemies[i].y*gridsize, enemies[i].dir==0?gridsize:gridsize*enemies[i].len, enemies[i].dir!=0?gridsize:gridsize*enemies[i].len);
+}
+
 // Check for game being complete
 function checkfinished()
 {
@@ -109,6 +132,7 @@ function checkfinished()
   if ((checkfound()==3) || (arsenal.used==arsenal.total))
   {
     finished=true;
+    showenemies();
 
     if (checkfound()==3)
     {
@@ -248,12 +272,12 @@ function canvasclick(cx, cy)
 }
 
 // See if an item will fit at given x,y position and given length/orientation
-function fits(x, y, itemlength, orientation)
+function fits(x, y, itemlength, direction)
 {
   // Iterate over all proposed item element
   for (var i=0; i<itemlength; i++)
   {
-    if (orientation==0)
+    if (direction==0)
     {
       // Check vertical
       if ((x>=dimension) || (y+i>=dimension)) return false;
@@ -277,18 +301,21 @@ function placeitem(itemnumber, itemlength)
   // Generate random positions/orientation until item fits
   while (1)
   {
-    var orientation = Math.floor(rng()*1000) % 2;
+    var direction = Math.floor(rng()*1000) % 2;
     var x = Math.floor(rng() * dimension);
     var y = Math.floor(rng() * dimension);
 
     // If it fits at this random position, then we're all good
-    if (fits(x, y, itemlength, orientation))
+    if (fits(x, y, itemlength, direction))
       break;
   }
 
+  // Cache item location
+  enemies.push({x:x, y:y, dir:direction, len:itemlength });
+
   // Place item where we found a space
   for (var i=0; i<itemlength; i++)
-    if (orientation == 0)
+    if (direction == 0)
       board[boardpos(x, y+i)] = 102 + itemnumber;
     else
       board[boardpos(x+i, y)] = 102 + itemnumber;
@@ -297,6 +324,9 @@ function placeitem(itemnumber, itemlength)
 // Generate a new board, using prng
 function generateboard()
 {
+  // Remove enemies cache
+  enemies=[];
+
   // Empty the board first
   for (var y=0; y<dimension; y++)
     for (var x=0; x<dimension; x++)
@@ -402,26 +432,26 @@ function resize()
  {
    newx=window.innerWidth;
    newy=window.innerWidth/aspectratio;
-   orientation="portrait";
+   devorientation="portrait";
  }
  else
  {
    newy=window.innerHeight;
    newx=window.innerHeight*aspectratio;
-   orientation="landscape";
+   devorientation="landscape";
  }
 
   boardcanvas.style.width=newx+"px";
   boardcanvas.style.height=newy+"px";
-  boardcanvas.setAttribute("orientation", orientation);
+  boardcanvas.setAttribute("orientation", devorientation);
 
   gsthreedee.canvas.style.width=newx+"px";
   gsthreedee.canvas.style.height=newy+"px";
-  gsthreedee.canvas.setAttribute("orientation", orientation);
+  gsthreedee.canvas.setAttribute("orientation", devorientation);
 
   titlecanvas.style.width=newx+"px";
   titlecanvas.style.height=newy+"px";
-  titlecanvas.setAttribute("orientation", orientation);
+  titlecanvas.setAttribute("orientation", devorientation);
 }
 
 function drawspill(x, y, style)
@@ -523,12 +553,19 @@ function startup()
   var svg64 = btoa(xml);
   var b64Start = 'data:image/svg+xml;base64,';
   var image64 = b64Start + svg64;
-  var img=new Image();
+
   img.onload = function() {
     // draw the image onto the canvas
     titlectx.imageSmoothingEnabled = false;
     titlectx.mozimageSmoothingEnabled = false;
     titlectx.drawImage(img, 0, 0, 600, 100);
+
+    // Load enemy sprite
+    elem.innerHTML=enemysprite;
+    xml = new XMLSerializer().serializeToString(elem.firstChild);
+    svg64 = btoa(xml);
+    image64 = b64Start + svg64;
+    imgspr.src=image64;
   }
   img.src=image64;
 

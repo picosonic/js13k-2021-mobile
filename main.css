@@ -81,7 +81,17 @@ canvas
   bottom:50px;
 }
 
-#arsenal, #found, #record, #status
+#arsenal
+{
+  position:absolute;
+  top:66%;
+  left:10px;
+  width:12%;
+  transform:scale(3);
+  transform-origin:0% 0%;
+}
+
+#found, #record, #status
 {
   font-size:30px;
 }

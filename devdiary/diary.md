@@ -34,3 +34,9 @@ Hid the targets so that you now have to play to find them. Show shots as splats 
 Added orientation sensitive placement of canvas areas.
 
 Added storing/retrieving of the record number of misses before completion into localstorage.
+
+2nd September
+-------------
+Improved display of remaining arsenal. Using assets from [Kenney.nl](https://www.kenney.nl/assets/space-shooter-extension)
+
+Added sprites for enemy ships and splat bombs.
