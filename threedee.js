@@ -207,7 +207,7 @@ class engine3D
 
     this.model=0;
     this.meshcube.cleartris();
-    this.meshcube.loadfromobject(this.findmodel("trophy"));
+    this.meshcube.loadfromobject(this.findmodel("crater"));
   }
 
   // Find 3D model by name
@@ -399,9 +399,9 @@ class engine3D
 }
 
 // Make a 3D model using "Solids of Revolution" - Beebug Vol.8 No.7 December 1989
-function maketrophy()
+function makecraters()
 {
-  var obj={t:"trophy", v:[], f:[], c:[], s:0.01}; // Empty model
+  var obj={t:"crater", v:[], f:[], c:[], s:0.01}; // Empty model
   var points=[
     [0, 90], // Centre
     [18,90],
@@ -454,6 +454,6 @@ function maketrophy()
 
 function threedeeinit()
 {
-  maketrophy();
+  makecraters();
   gsthreedee=new engine3D;
 }
