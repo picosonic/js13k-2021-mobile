@@ -118,7 +118,7 @@ function checkfinished()
         record=arsenal.used;
         try
         {
-          localStorage.craterspace_record=record;
+          window.localStorage.craterspace_record=record;
         }
         catch (e) {}
         showrecord();
@@ -496,7 +496,7 @@ function startup()
   // Try to retrieve record from local storage
   try
   {
-    const bestrecord=localStorage.craterspace_record;
+    const bestrecord=window.localStorage.craterspace_record;
     if ((bestrecord!=null) && (bestrecord!=undefined))
       record=parseInt(bestrecord, 10);
   }
