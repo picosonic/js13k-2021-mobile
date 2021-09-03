@@ -572,6 +572,7 @@ function startup()
   resetgame();
   
   gs.sprites.generate("enemy", enemysprite);
+  gs.sprites.generate("bomb", bombsprite);
   gs.sprites.generate("title", titlewrite(0, 0, 100, "CRATER SPACE"), drawtitle);
  
   // Handle resizing and device rotation
