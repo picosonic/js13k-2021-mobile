@@ -34,7 +34,6 @@ var xmax=400;
 var ymax=400;
 
 var models=[];
-var gsthreedee=null;
 
 const PIOVER180=(Math.PI/180);
 
@@ -455,5 +454,6 @@ function makecraters()
 function threedeeinit()
 {
   makecraters();
-  gsthreedee=new engine3D;
+
+  return new engine3D;
 }

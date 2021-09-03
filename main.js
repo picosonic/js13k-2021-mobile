@@ -2,36 +2,47 @@
 const dimension=8;
 const gridsize=50;
 
-// Arsenal
-var arsenal={used:0, total:24};
+// Game state is global to prevent it going out of scope
+var gs={
+  // Arsenal of weapons
+  arsenal:{used:0, total:24},
 
-var generated=false;
+  // Record of ammo used during best successful clearance
+  record:0,
 
-// Record of ammo used during best successful clearance
-var record=0;
+  // Has the initial game board generation been done
+  generated:false,
 
-// Has the current game finished
-var finished=false;
+  // Has the current game finished
+  finished:false,
 
-// Game board array
-var board=[];
+  // Game board array
+  board:[],
 
-// Enemy positions
-var enemies=[];
+  // Enemy positions
+  enemies:[],
 
-// Spills
-var spills=[];
+  // Spills from splats
+  spills:[],
 
-var boardcanvas=null;
-var boardctx=null;
-var titlecanvas=null;
-var titlectx=null;
+  // HTML5 canvases and their contexts
+  boardcanvas:null,
+  boardctx:null,
+  titlecanvas:null,
+  titlectx:null,
 
-var sprites=new spritelib();
+  // 3D library
+  threedee:null,
 
-var img=new Image();
+  // SVG sprites converted to bitmaps
+  sprites:new spritelib(),
 
-var devorientation="landscape";
+  img:new Image(),
+
+  devorientation:"landscape",
+
+  timeline:new timelineobj(),
+};
 
 // Lookup for board position in 2D array
 function boardpos(x, y)
@@ -50,8 +61,8 @@ function showrecord()
 {
   var recordstr="";
 
-  if (record>0)
-    recordstr="Record "+record;
+  if (gs.record>0)
+    recordstr="Record "+gs.record;
 
   document.getElementById("record").innerHTML=recordstr;
 }
@@ -62,9 +73,9 @@ function showammo()
   var out="";
   var i;
 
-  for (i=0; i<arsenal.total; i++)
+  for (i=0; i<gs.arsenal.total; i++)
   {
-    if (i<arsenal.used)
+    if (i<gs.arsenal.used)
       out+=bombsprite.replace('#36bbf5', '#333').replace('#1884b4', '#222').replace('#78888c','#444').replace('#bdd6db','#555').replace('#a1b6bb','#666');
     else
       out+=bombsprite;
@@ -76,9 +87,9 @@ function showammo()
 // If possible use ammo and update counter
 function useammo()
 {
-  if (arsenal.used==arsenal.total) return false;
+  if (gs.arsenal.used==gs.arsenal.total) return false;
 
-  arsenal.used++;
+  gs.arsenal.used++;
 
   showammo();
 
@@ -96,7 +107,7 @@ function checkfound()
 
   for (var y=0; y<dimension; y++)
     for (var x=0; x<dimension; x++)
-      switch (board[boardpos(x, y)])
+      switch (gs.board[boardpos(x, y)])
       {
         case 202: found102++; break;
         case 203: found103++; break;
@@ -120,8 +131,8 @@ function checkfound()
 
 function showenemies()
 {
-  for (var i=0; i<enemies.length; i++)
-    sprites.draw("enemy", boardctx, enemies[i].x*gridsize, enemies[i].y*gridsize, enemies[i].dir==0?gridsize:gridsize*enemies[i].len, enemies[i].dir!=0?gridsize:gridsize*enemies[i].len);
+  for (var i=0; i<gs.enemies.length; i++)
+    gs.sprites.draw("enemy", gs.boardctx, gs.enemies[i].x*gridsize, gs.enemies[i].y*gridsize, gs.enemies[i].dir==0?gridsize:gridsize*gs.enemies[i].len, gs.enemies[i].dir!=0?gridsize:gridsize*gs.enemies[i].len);
 }
 
 // Check for game being complete
@@ -130,20 +141,20 @@ function checkfinished()
   var statusstr="";
 
   // Check for end of game
-  if ((checkfound()==3) || (arsenal.used==arsenal.total))
+  if ((checkfound()==3) || (gs.arsenal.used==gs.arsenal.total))
   {
-    finished=true;
+    gs.finished=true;
     showenemies();
 
     if (checkfound()==3)
     {
       statusstr="COMPLETED - WELL DONE";
-      if ((arsenal.used<record) || (record==0))
+      if ((gs.arsenal.used<gs.record) || (gs.record==0))
       {
-        record=arsenal.used;
+        gs.record=gs.arsenal.used;
         try
         {
-          window.localStorage.craterspace_record=record;
+          window.localStorage.craterspace_record=gs.record;
         }
         catch (e) {}
         showrecord();
@@ -165,34 +176,34 @@ function fire(x, y)
   var hit=false;
 
   // Don't allow more shots if this game has finished
-  if (finished) return false;
+  if (gs.finished) return false;
 
   // Check we have ammo left
-  if (arsenal.used==arsenal.total) return false;
+  if (gs.arsenal.used==gs.arsenal.total) return false;
 
-  switch (board[boardpos(x,y)])
+  switch (gs.board[boardpos(x,y)])
   {
     case 0:
       // Miss in a blank square - add a cross
-      board[boardpos(x,y)]=200;
+      gs.board[boardpos(x,y)]=200;
       redraw=true;
       break;
 
     case 102:
       // Hit on 2 sized entity - mark as hit
-      board[boardpos(x,y)]+=100;
+      gs.board[boardpos(x,y)]+=100;
       redraw=true; hit=true;
       break;
 
     case 103:
       // Hit on 3 sized entity - mark as hit
-      board[boardpos(x,y)]+=100;
+      gs.board[boardpos(x,y)]+=100;
       redraw=true; hit=true;
       break;
 
     case 104:
       // Hit on 4 sized entity - mark as hit
-      board[boardpos(x,y)]+=100;
+      gs.board[boardpos(x,y)]+=100;
       redraw=true; hit=true;
       break;
 
@@ -220,24 +231,24 @@ function showboard()
   for (var y=0; y<dimension; y++)
     for (var x=0; x<dimension; x++)
     {
-      boardctx.fillStyle="#000000";
+      gs.boardctx.fillStyle="#000000";
 
-      switch(board[boardpos(x,y)])
+      switch(gs.board[boardpos(x,y)])
       {
         case 102:
-          //boardctx.fillStyle="#FF0000";
+          //gs.boardctx.fillStyle="#FF0000";
           break;
 
         case 103:
-          //boardctx.fillStyle="#00FF00";
+          //gs.boardctx.fillStyle="#00FF00";
           break;
 
         case 104:
-          //boardctx.fillStyle="#0000FF";
+          //gs.boardctx.fillStyle="#0000FF";
           break;
 
         case 200:
-          //boardctx.fillStyle="#FFFF00";
+          //gs.boardctx.fillStyle="#FFFF00";
           drawspill(x, y, '#18d618');
           continue;
           break;
@@ -245,7 +256,7 @@ function showboard()
         case 202:
         case 203:
         case 204:
-          //boardctx.fillStyle="#FFA500";
+          //gs.boardctx.fillStyle="#FFA500";
           drawspill(x, y, '#ef2d76');
           continue;
           break;
@@ -253,23 +264,23 @@ function showboard()
         default:
           break;
       }
-      //boardctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
+      //gs.boardctx.fillRect(x*gridsize, y*gridsize, gridsize, gridsize);
     }
 }
 
 // Handle clicks on canvas
 function canvasclick(cx, cy)
 {
-  var x=cx-(boardcanvas.offsetLeft+boardcanvas.clientLeft);
-  var y=cy-(boardcanvas.offsetTop+boardcanvas.clientTop);
+  var x=cx-(gs.boardcanvas.offsetLeft+gs.boardcanvas.clientLeft);
+  var y=cy-(gs.boardcanvas.offsetTop+gs.boardcanvas.clientTop);
   
-  if (!generated)
+  if (!gs.generated)
   {
     generateboard();
-    generated=true;
+    gs.generated=true;
   }
 
-  fire(Math.floor(x/(boardcanvas.clientWidth/8)), Math.floor(y/(boardcanvas.clientWidth/8)));
+  fire(Math.floor(x/(gs.boardcanvas.clientWidth/8)), Math.floor(y/(gs.boardcanvas.clientWidth/8)));
 }
 
 // See if an item will fit at given x,y position and given length/orientation
@@ -282,13 +293,13 @@ function fits(x, y, itemlength, direction)
     {
       // Check vertical
       if ((x>=dimension) || (y+i>=dimension)) return false;
-      if (board[boardpos(x, y+i)]>100) return false;
+      if (gs.board[boardpos(x, y+i)]>100) return false;
     }
     else
     {
       // Check horizontal
       if ((x+i>=dimension) || (y>=dimension)) return false;
-      if (board[boardpos(x+i, y)]>100) return false;
+      if (gs.board[boardpos(x+i, y)]>100) return false;
     }
   }
 
@@ -312,26 +323,26 @@ function placeitem(itemnumber, itemlength)
   }
 
   // Cache item location
-  enemies.push({x:x, y:y, dir:direction, len:itemlength });
+  gs.enemies.push({x:x, y:y, dir:direction, len:itemlength });
 
   // Place item where we found a space
   for (var i=0; i<itemlength; i++)
     if (direction == 0)
-      board[boardpos(x, y+i)] = 102 + itemnumber;
+      gs.board[boardpos(x, y+i)] = 102 + itemnumber;
     else
-      board[boardpos(x+i, y)] = 102 + itemnumber;
+      gs.board[boardpos(x+i, y)] = 102 + itemnumber;
 }
 
 // Generate a new board, using prng
 function generateboard()
 {
   // Remove enemies cache
-  enemies=[];
+  gs.enemies=[];
 
   // Empty the board first
   for (var y=0; y<dimension; y++)
     for (var x=0; x<dimension; x++)
-      board[boardpos(x, y)]=0;
+    gs.board[boardpos(x, y)]=0;
 
   // Place the items
   placeitem(0, 2);
@@ -384,24 +395,24 @@ function updatedrand()
 
 function resetgame()
 {
-  finished=false;
-  spills=[];
+  gs.finished=false;
+  gs.spills=[];
 
   // Clear canvas
-  boardctx.clearRect(0, 0, 400, 400);
+  gs.boardctx.clearRect(0, 0, 400, 400);
 
   // Draw targetting grid
   for (var ts=0; ts<=dimension; ts++)
   {
-    boardctx.beginPath();
-    boardctx.moveTo(ts*gridsize, 0);
-    boardctx.lineTo(ts*gridsize, gridsize*dimension);
-    boardctx.stroke();
+    gs.boardctx.beginPath();
+    gs.boardctx.moveTo(ts*gridsize, 0);
+    gs.boardctx.lineTo(ts*gridsize, gridsize*dimension);
+    gs.boardctx.stroke();
 
-    boardctx.beginPath();
-    boardctx.moveTo(0, ts*gridsize);
-    boardctx.lineTo(gridsize*dimension, ts*gridsize);
-    boardctx.stroke();
+    gs.boardctx.beginPath();
+    gs.boardctx.moveTo(0, ts*gridsize);
+    gs.boardctx.lineTo(gridsize*dimension, ts*gridsize);
+    gs.boardctx.stroke();
   }
 
   // Attempt to get decentralized random data from drand
@@ -413,7 +424,7 @@ function resetgame()
   // Show the board on screen
   showboard();
 
-  arsenal.used=0;
+  gs.arsenal.used=0;
   showammo();
 
   checkfound();
@@ -433,26 +444,26 @@ function resize()
  {
    newx=window.innerWidth;
    newy=window.innerWidth/aspectratio;
-   devorientation="portrait";
+   gs.devorientation="portrait";
  }
  else
  {
    newy=window.innerHeight;
    newx=window.innerHeight*aspectratio;
-   devorientation="landscape";
+   gs.devorientation="landscape";
  }
 
-  boardcanvas.style.width=newx+"px";
-  boardcanvas.style.height=newy+"px";
-  boardcanvas.setAttribute("orientation", devorientation);
+  gs.boardcanvas.style.width=newx+"px";
+  gs.boardcanvas.style.height=newy+"px";
+  gs.boardcanvas.setAttribute("orientation", gs.devorientation);
 
-  gsthreedee.canvas.style.width=newx+"px";
-  gsthreedee.canvas.style.height=newy+"px";
-  gsthreedee.canvas.setAttribute("orientation", devorientation);
+  gs.threedee.canvas.style.width=newx+"px";
+  gs.threedee.canvas.style.height=newy+"px";
+  gs.threedee.canvas.setAttribute("orientation", gs.devorientation);
 
-  titlecanvas.style.width=newx+"px";
-  titlecanvas.style.height=newy+"px";
-  titlecanvas.setAttribute("orientation", devorientation);
+  gs.titlecanvas.style.width=newx+"px";
+  gs.titlecanvas.style.height=newy+"px";
+  gs.titlecanvas.setAttribute("orientation", gs.devorientation);
 }
 
 function drawspill(x, y, style)
@@ -468,12 +479,12 @@ function drawspill(x, y, style)
   cr=gridsize*(0.28);
   
   // Draw central splat
-  boardctx.fillStyle=style;
-  boardctx.beginPath();
-  boardctx.arc(cx, cy, cr, 0, 2*Math.PI);
-  boardctx.fill();
+  gs.boardctx.fillStyle=style;
+  gs.boardctx.beginPath();
+  gs.boardctx.arc(cx, cy, cr, 0, 2*Math.PI);
+  gs.boardctx.fill();
 
-  if (spills[sp]==undefined)
+  if (gs.spills[sp]==undefined)
   {
     // Generate spills
     for (i=0; i<nspill; i++)
@@ -487,38 +498,45 @@ function drawspill(x, y, style)
         d:Math.floor(cr*2*((rng()*0.19)+0.56)) // Distance from start for where to finish up
       };
     }
-    spills[sp]=thisspill;
+    gs.spills[sp]=thisspill;
   }
 
   // Draw spills
   for (i=0; i<nspill; i++)
   {
-    if (spills[sp][i].t<100)
+    if (gs.spills[sp][i].t<100)
     {
       // Draw spill
-      var ss=spills[sp][i].r;
+      var ss=gs.spills[sp][i].r;
 
       // Adjust spillage size based on travel
-      if (spills[sp][i].t>70)
-        ss*=((Math.cos((30-(100-spills[sp][i].t))/(30/(2*Math.PI)))+1)/2);
+      if (gs.spills[sp][i].t>70)
+        ss*=((Math.cos((30-(100-gs.spills[sp][i].t))/(30/(2*Math.PI)))+1)/2);
 
       // Adjust distance from centre based on travel time
-      sx=(spills[sp][i].d*(spills[sp][i].t/100))*Math.cos(spills[sp][i].a);
-      sy=(spills[sp][i].d*(spills[sp][i].t/100))*Math.sin(spills[sp][i].a);
-      boardctx.beginPath();
-      boardctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
-      boardctx.fill();
+      sx=(gs.spills[sp][i].d*(gs.spills[sp][i].t/100))*Math.cos(gs.spills[sp][i].a);
+      sy=(gs.spills[sp][i].d*(gs.spills[sp][i].t/100))*Math.sin(gs.spills[sp][i].a);
+      gs.boardctx.beginPath();
+      gs.boardctx.arc(cx+sx, cy+sy, ss, 0, 2*Math.PI);
+      gs.boardctx.fill();
 
-      spills[sp][i].t+=10;
+      gs.spills[sp][i].t+=10;
     }
   }
 }
 
+// Move on to next number in pRNG generation
 function advancerng()
 {
   var a=rng();
   showboard();
   window.requestAnimationFrame(advancerng);
+}
+
+// Draw the game title
+function drawtitle(sprite)
+{
+  gs.titlectx.drawImage(sprite.img, 0, 0, 600, 100);
 }
 
 // Startup called once when page is loaded
@@ -529,42 +547,33 @@ function startup()
   {
     const bestrecord=window.localStorage.craterspace_record;
     if ((bestrecord!=null) && (bestrecord!=undefined))
-      record=parseInt(bestrecord, 10);
+      gs.record=parseInt(bestrecord, 10);
   }
   catch (e) {}
 
-  threedeeinit();
-  gsthreedee.start();
+  gs.threedee=threedeeinit();
+  gs.threedee.start();
 
   window.requestAnimationFrame(advancerng);
 
-  boardcanvas=document.getElementById("board");
-  boardctx=boardcanvas.getContext("2d");
-  titlecanvas=document.getElementById("title");
-  titlectx=titlecanvas.getContext("2d");
+  gs.boardcanvas=document.getElementById("board");
+  gs.boardctx=gs.boardcanvas.getContext("2d");
+  gs.titlecanvas=document.getElementById("title");
+  gs.titlectx=gs.titlecanvas.getContext("2d");
+
+  // Make sure we pixelate upon scaling
+  gs.boardctx.imageSmoothingEnabled=false;
+  gs.boardctx.mozimageSmoothingEnabled=false;
+  gs.titlectx.imageSmoothingEnabled=false;
+  gs.titlectx.mozimageSmoothingEnabled=false;
   
-  boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
+  gs.boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
 
   resetgame();
   
-  sprites.generate("enemy", enemysprite);
+  gs.sprites.generate("enemy", enemysprite);
+  gs.sprites.generate("title", titlewrite(0, 0, 100, "CRATER SPACE"), drawtitle);
  
-  var elem=document.createElement("div");
-  elem.innerHTML=titlewrite(0, 0, 100, "CRATER SPACE");
- 
-  var xml = new XMLSerializer().serializeToString(elem.firstChild);
-  var svg64 = btoa(xml);
-  var b64Start = 'data:image/svg+xml;base64,';
-  var image64 = b64Start + svg64;
-
-  img.onload = function() {
-    // draw the image onto the canvas
-    titlectx.imageSmoothingEnabled = false;
-    titlectx.mozimageSmoothingEnabled = false;
-    titlectx.drawImage(img, 0, 0, 600, 100);
-  }
-  img.src=image64;
-
   // Handle resizing and device rotation
   resize();
   window.addEventListener("resize", resize);
