@@ -27,8 +27,9 @@ var boardctx=null;
 var titlecanvas=null;
 var titlectx=null;
 
+var sprites=new spritelib();
+
 var img=new Image();
-var imgspr=new Image();
 
 var devorientation="landscape";
 
@@ -120,7 +121,7 @@ function checkfound()
 function showenemies()
 {
   for (var i=0; i<enemies.length; i++)
-    boardctx.drawImage(imgspr, enemies[i].x*gridsize, enemies[i].y*gridsize, enemies[i].dir==0?gridsize:gridsize*enemies[i].len, enemies[i].dir!=0?gridsize:gridsize*enemies[i].len);
+    sprites.draw("enemy", boardctx, enemies[i].x*gridsize, enemies[i].y*gridsize, enemies[i].dir==0?gridsize:gridsize*enemies[i].len, enemies[i].dir!=0?gridsize:gridsize*enemies[i].len);
 }
 
 // Check for game being complete
@@ -545,6 +546,8 @@ function startup()
   boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
 
   resetgame();
+  
+  sprites.generate("enemy", enemysprite);
  
   var elem=document.createElement("div");
   elem.innerHTML=titlewrite(0, 0, 100, "CRATER SPACE");
@@ -559,13 +562,6 @@ function startup()
     titlectx.imageSmoothingEnabled = false;
     titlectx.mozimageSmoothingEnabled = false;
     titlectx.drawImage(img, 0, 0, 600, 100);
-
-    // Load enemy sprite
-    elem.innerHTML=enemysprite;
-    xml = new XMLSerializer().serializeToString(elem.firstChild);
-    svg64 = btoa(xml);
-    image64 = b64Start + svg64;
-    imgspr.src=image64;
   }
   img.src=image64;
 
