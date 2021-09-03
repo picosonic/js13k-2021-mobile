@@ -43,4 +43,8 @@ Added sprites for enemy ships and splat bombs.
 
 3rd September
 -------------
-Added SVG sprite library whih converts them to bitmaps for rendering to canvas.
+Added SVG sprite library whih converts them to bitmaps for rendering to canvas, with optional callback.
+
+Added timeline library from previous js13k entry.
+
+Code refactoring, moved vars into gamestate object.
