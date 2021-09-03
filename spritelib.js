@@ -15,10 +15,14 @@ class spritelib
 
     // Add loaded sprite to sprites array
     this.sprites.push(newspr);
+
+    // Call the callback if specified
+    if (newspr.callback!=undefined)
+      newspr.callback(newspr);
   }
 
   // Generate an image from SVG content
-  generate(name, content)
+  generate(name, content, callback)
   {
     var newspr={
       name:name,
@@ -26,9 +30,16 @@ class spritelib
       img:new Image()
     };
 
+    // Store callback function if specified
+    if (callback!=undefined)
+      newspr.callback=callback;
+
+    // Do the conversion
     newspr.elem.innerHTML=content;
     newspr.xml=new XMLSerializer().serializeToString(newspr.elem.firstChild);
     newspr.img.src='data:image/svg+xml;base64,'+btoa(newspr.xml);
+
+    // When the image has loaded from the b64, store the sprite and optionally run the callback
     newspr.img.onload=this.loaded(newspr);
   }
 
