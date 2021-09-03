@@ -40,3 +40,7 @@ Added storing/retrieving of the record number of misses before completion into l
 Improved display of remaining arsenal. Using assets from [Kenney.nl](https://www.kenney.nl/assets/space-shooter-extension)
 
 Added sprites for enemy ships and splat bombs.
+
+3rd September
+-------------
+Added SVG sprite library whih converts them to bitmaps for rendering to canvas.
