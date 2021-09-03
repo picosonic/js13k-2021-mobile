@@ -22,7 +22,7 @@ class spritelib
   }
 
   // Generate an image from SVG content
-  generate(name, content, callback)
+  generate(name, content, callback=undefined)
   {
     var newspr={
       name:name,
