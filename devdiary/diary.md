@@ -48,3 +48,9 @@ Added SVG sprite library whih converts them to bitmaps for rendering to canvas, 
 Added timeline library from previous js13k entry.
 
 Code refactoring, moved vars into gamestate object.
+
+5th September
+-------------
+Don't keep redrawing splats once complete.
+
+When revealing enemies, draw them semi-transparently.
