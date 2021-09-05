@@ -131,8 +131,13 @@ function checkfound()
 
 function showenemies()
 {
+  gs.boardctx.save();
+  gs.boardctx.globalAlpha=0.5;
+
   for (var i=0; i<gs.enemies.length; i++)
     gs.sprites.draw("enemy", gs.boardctx, gs.enemies[i].x*gridsize, gs.enemies[i].y*gridsize, gs.enemies[i].dir==0?gridsize:gridsize*gs.enemies[i].len, gs.enemies[i].dir!=0?gridsize:gridsize*gs.enemies[i].len);
+
+  gs.boardctx.restore();
 }
 
 // Check for game being complete
@@ -473,6 +478,11 @@ function drawspill(x, y, style)
   var thisspill=[];
   var sp=boardpos(x, y);
   var i;
+  var numspilt=0;
+
+  // Don't keep drawing the same spill
+  if ((gs.spills[sp]!=undefined) && (gs.spills[sp].done))
+    return;
 
   cx=Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
   cy=Math.floor((y*gridsize)+(gridsize/2))+Math.floor(rng()*2);
@@ -499,6 +509,7 @@ function drawspill(x, y, style)
       };
     }
     gs.spills[sp]=thisspill;
+    gs.spills[sp].done=false;
   }
 
   // Draw spills
@@ -522,7 +533,13 @@ function drawspill(x, y, style)
 
       gs.spills[sp][i].t+=10;
     }
+    else
+      numspilt++;
   }
+
+  // If all drips are done, then mark this splat as done so we don't keep drawing it
+  if (numspilt==nspill)
+    gs.spills[sp].done=true;
 }
 
 // Move on to next number in pRNG generation
