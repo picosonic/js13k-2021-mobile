@@ -54,3 +54,11 @@ Code refactoring, moved vars into gamestate object.
 Don't keep redrawing splats once complete.
 
 When revealing enemies, draw them semi-transparently.
+
+6th September
+-------------
+Refactoring to draw more to the same canvas.
+
+Keep game board portrait and scale appropriately.
+
+Show arsenal and enemies graphically.
