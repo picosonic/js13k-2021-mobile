@@ -28,8 +28,11 @@ var gs={
   // HTML5 canvases and their contexts
   boardcanvas:null,
   boardctx:null,
-  titlecanvas:null,
-  titlectx:null,
+
+  // Position offsets
+  boardx:0,
+  boardy:65,
+  boardscale:1,
 
   // 3D library
   threedee:null,
@@ -70,18 +73,13 @@ function showrecord()
 // Show what ammo we have
 function showammo()
 {
-  var out="";
-  var i;
-
-  for (i=0; i<gs.arsenal.total; i++)
+  for (var i=0; i<gs.arsenal.total; i++)
   {
     if (i<gs.arsenal.used)
-      out+=bombsprite.replace('#36bbf5', '#333').replace('#1884b4', '#222').replace('#78888c','#444').replace('#bdd6db','#555').replace('#a1b6bb','#666');
+      gs.sprites.draw("spentbomb", gs.boardctx, 16*i, 480, 16, 40);
     else
-      out+=bombsprite;
+      gs.sprites.draw("bomb", gs.boardctx, 16*i, 480, 16, 40);
   }
-
-  document.getElementById("arsenal").innerHTML=out;
 }
 
 // If possible use ammo and update counter
@@ -122,9 +120,10 @@ function checkfound()
   if (found104==4) found++;
 
   for (var i=0; i<3; i++)
-    if (i<found) foundstr+="X "; else foundstr+="[] ";
-
-  document.getElementById("found").innerHTML=foundstr;
+    if (i<found)
+      gs.sprites.draw("foundenemy", gs.boardctx, 5, 540+(i*45), 40, 40);
+    else
+      gs.sprites.draw("enemy", gs.boardctx, 5, 540+(i*45), 40, 40);
 
   return found;
 }
@@ -135,7 +134,7 @@ function showenemies()
   gs.boardctx.globalAlpha=0.5;
 
   for (var i=0; i<gs.enemies.length; i++)
-    gs.sprites.draw("enemy", gs.boardctx, gs.enemies[i].x*gridsize, gs.enemies[i].y*gridsize, gs.enemies[i].dir==0?gridsize:gridsize*gs.enemies[i].len, gs.enemies[i].dir!=0?gridsize:gridsize*gs.enemies[i].len);
+    gs.sprites.draw("enemy", gs.boardctx, gs.boardx+(gs.enemies[i].x*gridsize), gs.boardy+(gs.enemies[i].y*gridsize), gs.enemies[i].dir==0?gridsize:gridsize*gs.enemies[i].len, gs.enemies[i].dir!=0?gridsize:gridsize*gs.enemies[i].len);
 
   gs.boardctx.restore();
 }
@@ -278,14 +277,25 @@ function canvasclick(cx, cy)
 {
   var x=cx-(gs.boardcanvas.offsetLeft+gs.boardcanvas.clientLeft);
   var y=cy-(gs.boardcanvas.offsetTop+gs.boardcanvas.clientTop);
+
+  // Recalibrate to remove scaling of board
+  x/=gs.boardscale;
+  y/=gs.boardscale;
+
+  // Recalibrate to where board is on canvas
+  x-=gs.boardx;
+  y-=gs.boardy;
   
+  // Upon first interaction generate a boad using current pRNG state
   if (!gs.generated)
   {
     generateboard();
     gs.generated=true;
   }
 
-  fire(Math.floor(x/(gs.boardcanvas.clientWidth/8)), Math.floor(y/(gs.boardcanvas.clientWidth/8)));
+  // If we are over the grid, register a shot at the grid
+  if ((x>=0) && (y>=0) && (x<=(gridsize*8)) && (y<=(gridsize*8)))
+    fire(Math.floor(x/gridsize), Math.floor(y/gridsize));
 }
 
 // See if an item will fit at given x,y position and given length/orientation
@@ -404,19 +414,19 @@ function resetgame()
   gs.spills=[];
 
   // Clear canvas
-  gs.boardctx.clearRect(0, 0, 400, 400);
+  gs.boardctx.clearRect(gs.boardx, gs.boardy, gridsize*8, gridsize*8);
 
   // Draw targetting grid
   for (var ts=0; ts<=dimension; ts++)
   {
     gs.boardctx.beginPath();
-    gs.boardctx.moveTo(ts*gridsize, 0);
-    gs.boardctx.lineTo(ts*gridsize, gridsize*dimension);
+    gs.boardctx.moveTo(gs.boardx+(ts*gridsize), gs.boardy);
+    gs.boardctx.lineTo(gs.boardx+(ts*gridsize), gs.boardy+(gridsize*dimension));
     gs.boardctx.stroke();
 
     gs.boardctx.beginPath();
-    gs.boardctx.moveTo(0, ts*gridsize);
-    gs.boardctx.lineTo(gridsize*dimension, ts*gridsize);
+    gs.boardctx.moveTo(gs.boardx, gs.boardy+(ts*gridsize));
+    gs.boardctx.lineTo(gs.boardx+(gridsize*dimension), gs.boardy+(ts*gridsize));
     gs.boardctx.stroke();
   }
 
@@ -442,33 +452,39 @@ function resetgame()
 // Action a browser resize
 function resize()
 {
- var aspectratio=400/400;
- var newx, newy;
+  var height=window.innerHeight;
+  var aspectratio=xmax/ymax;
+  var ratio=xmax/ymax;
+  var width=Math.floor(height*ratio);
+  var top=0;
+  var left=Math.floor((window.innerWidth/2)-(width/2));
 
- if ((window.innerWidth/window.innerHeight)<aspectratio)
- {
-   newx=window.innerWidth;
-   newy=window.innerWidth/aspectratio;
-   gs.devorientation="portrait";
- }
- else
- {
-   newy=window.innerHeight;
-   newx=window.innerHeight*aspectratio;
-   gs.devorientation="landscape";
- }
+  if (width>window.innerWidth)
+  {
+    width=window.innerWidth;
+    ratio=ymax/xmax;
+    height=Math.floor(width*ratio);
 
-  gs.boardcanvas.style.width=newx+"px";
-  gs.boardcanvas.style.height=newy+"px";
-  gs.boardcanvas.setAttribute("orientation", gs.devorientation);
+    left=0;
+    top=Math.floor((window.innerHeight/2)-(height/2));
+  }
 
-  gs.threedee.canvas.style.width=newx+"px";
-  gs.threedee.canvas.style.height=newy+"px";
-  gs.threedee.canvas.setAttribute("orientation", gs.devorientation);
+  if ((window.innerWidth/window.innerHeight)<aspectratio)
+    gs.devorientation="portrait";
+  else
+    gs.devorientation="landscape";
 
-  gs.titlecanvas.style.width=newx+"px";
-  gs.titlecanvas.style.height=newy+"px";
-  gs.titlecanvas.setAttribute("orientation", gs.devorientation);
+  gs.boardcanvas.style.top=top+"px";
+  gs.boardcanvas.style.left=left+"px";
+  gs.boardcanvas.style.transformOrigin='0 0';
+  gs.boardcanvas.style.transform='scale('+(height/ymax)+')';
+
+  gs.threedee.canvas.style.top=top+"px";
+  gs.threedee.canvas.style.left=left+"px";
+  gs.threedee.canvas.style.transformOrigin='0 0';
+  gs.threedee.canvas.style.transform='scale('+(height/ymax)+')';
+  
+  gs.boardscale=(width/xmax);
 }
 
 function drawspill(x, y, style)
@@ -484,8 +500,8 @@ function drawspill(x, y, style)
   if ((gs.spills[sp]!=undefined) && (gs.spills[sp].done))
     return;
 
-  cx=Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
-  cy=Math.floor((y*gridsize)+(gridsize/2))+Math.floor(rng()*2);
+  cx=gs.boardx+Math.floor((x*gridsize)+(gridsize/2))+Math.floor(rng()*2);
+  cy=gs.boardy+Math.floor((y*gridsize)+(gridsize/2))+Math.floor(rng()*2);
   cr=gridsize*(0.28);
   
   // Draw central splat
@@ -553,7 +569,7 @@ function advancerng()
 // Draw the game title
 function drawtitle(sprite)
 {
-  gs.titlectx.drawImage(sprite.img, 0, 0, 600, 100);
+  gs.sprites.draw("title", gs.boardctx, 0, -15, 600,100);
 }
 
 // Startup called once when page is loaded
@@ -575,21 +591,19 @@ function startup()
 
   gs.boardcanvas=document.getElementById("board");
   gs.boardctx=gs.boardcanvas.getContext("2d");
-  gs.titlecanvas=document.getElementById("title");
-  gs.titlectx=gs.titlecanvas.getContext("2d");
 
   // Make sure we pixelate upon scaling
   gs.boardctx.imageSmoothingEnabled=false;
   gs.boardctx.mozimageSmoothingEnabled=false;
-  gs.titlectx.imageSmoothingEnabled=false;
-  gs.titlectx.mozimageSmoothingEnabled=false;
   
   gs.boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
 
   resetgame();
   
   gs.sprites.generate("enemy", enemysprite);
+  gs.sprites.generate("foundenemy", enemysprite.replace('#ac3939','#333').replace('#bd3e3e','#222').replace('#eeeeee','#111'));
   gs.sprites.generate("bomb", bombsprite);
+  gs.sprites.generate("spentbomb", bombsprite.replace('#36bbf5','#333').replace('#1884b4', '#222').replace('#78888c','#444').replace('#bdd6db','#555').replace('#a1b6bb','#666'));
   gs.sprites.generate("title", titlewrite(0, 0, 100, "CRATER SPACE"), drawtitle);
  
   // Handle resizing and device rotation

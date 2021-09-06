@@ -1,6 +1,9 @@
 // Based on tutorial at https://www.youtube.com/watch?v=XgMWc6LumG4 by @Javidx9
 // Part #2 - Normals, Culling, Lighting & Mesh Loading
 
+const xmax=400;
+const ymax=711;
+
 // OpenGL default palette
 var palette=[
   [102, 102, 102], // 0 "darkgrey"
@@ -25,13 +28,10 @@ var palette=[
 var fnear=0.1; // Near plane (Z)
 var ffar=1000; // Far plane (Z)
 var ffov=90; // Field of view in degrees
-var faspectratio=400/400; // Screen aspect ratio
+var faspectratio=ymax/xmax; // Screen aspect ratio
 var ffovrad=1/Math.tan((ffov/2)/(180*Math.PI)); // Tangent of field of view calculation in radians
 var run3d=false;
 var lx=0.1;
-
-var xmax=400;
-var ymax=400;
 
 var models=[];
 
@@ -421,8 +421,8 @@ function makecraters()
   for (c=0; c<cnum; c++)
   {
     var cs=rng()*0.9;
-    var cx=(rng()*800)-400;
-    var cy=(rng()*800)-400;
+    var cx=(rng()*(xmax*2))-xmax;
+    var cy=(rng()*(xmax*2))-xmax;
     
     // Work through each point to generate 3D vertexes
     for (var i=0; i<points.length; i++)

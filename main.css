@@ -33,7 +33,7 @@ canvas
   left:0px;
   top:0px;
   width:400px;
-  height:400px;
+  height:711px;
 
   padding:0px;
   margin:0px;
@@ -43,56 +43,11 @@ canvas
   image-rendering:-webkit-crisp-edges;
   image-rendering:pixelated;
   image-rendering:crisp-edges;
-}
 
-#title[orientation="portrait"]
-{
   z-index:2;
-}
-
-#title[orientation="landscape"]
-{
-  transform:rotate(270deg) translate(10px,0px);
-  transform-origin:50% 50%;
-  z-index:2;
-}
-
-#board[orientation="portrait"]
-{
-  top:20vw;
-  z-index:3;
-}
-
-#board[orientation="landscape"]
-{
-  left:20vh;
-  z-index:3;
 }
 
 #threedee
 {
   z-index:1;
 }
-
-#info
-{
-  position:absolute;
-  left:50px;
-  bottom:50px;
-}
-
-#arsenal
-{
-  position:absolute;
-  top:66%;
-  left:10px;
-  width:12%;
-  transform:scale(3);
-  transform-origin:0% 0%;
-}
-
-#found, #record, #status
-{
-  font-size:30px;
-}
-
