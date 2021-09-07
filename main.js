@@ -235,6 +235,7 @@ function showrecord()
 // Show what ammo we have
 function showammo()
 {
+  // Draw bombs
   for (var i=0; i<gs.arsenal.total; i++)
   {
     if (i<gs.arsenal.used)
@@ -242,6 +243,20 @@ function showammo()
     else
       gs.sprites.draw("bomb", gs.boardctx, 16*i, 480, 16, 40);
   }
+
+  // Draw misses
+  gs.boardctx.save();
+  var grd=gs.boardctx.createLinearGradient(225, 525, 225, 525+30);
+  grd.addColorStop(0, "#ffed41");
+  grd.addColorStop(1, "#febf04");
+  gs.boardctx.fillStyle=grd;
+  gs.boardctx.shadowColor="rgba(0,0,0,0.8)";
+  gs.boardctx.shadowBlur=5;
+  gs.boardctx.clearRect(225, 520, 45, 55);
+  gs.boardctx.font="bold 30px Arial";
+  gs.boardctx.fillText(""+gs.arsenal.used, 230, 550);
+  gs.boardctx.fillStyle="black";
+  gs.boardctx.restore();
 }
 
 // If possible use ammo and update counter
