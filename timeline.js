@@ -54,7 +54,10 @@ class timelineobj
         if ((!this.timeline[i].done) && (this.timeline[i].start<delta))
         {
           this.timeline[i].done=true;
-          this.timeline[i].item();
+
+          // Only call function if it is defined
+          if (this.timeline[i].item!=undefined)
+            this.timeline[i].item();
         }
 
         // Keep a count of all remaining jobs
@@ -64,7 +67,13 @@ class timelineobj
 
       // If a callback was requested, then call it
       if (this.callback!=null)
-        this.callback();
+      {
+        // If there's only a single undefined function on the timeline and it doesn't start at 0, then call with percentage
+        if ((this.timeline.length==1) && (this.timeline[0].item==undefined) && (this.timeline[0].start>0))
+          this.callback((delta/this.timeline[0].start)*100);
+        else
+          this.callback();
+      }
     }
 
     // Record new timeline position
