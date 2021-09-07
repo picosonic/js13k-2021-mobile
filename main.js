@@ -69,20 +69,41 @@ function uiclick(cx, cy)
   x/=gs.boardscale;
   y/=gs.boardscale;
 
-  if (gs.state==3)
+  switch (gs.state)
   {
-    if ((x>=110) && (x<=325) && (y>=600) && (y<=680))
-    {
-      gs.state=2;
-      resetgame();
-    }
+    case 1: // Menu
+      if ((x>=110) && (x<=325) && (y>=100) && (y<=180))
+      {
+        // Normal game
+        gs.state=2;
+        resetgame();
+      }
+      else
+      if ((x>=110) && (x<=325) && (y>=300) && (y<=380))
+      {
+        // Decentralised game (using drand)
+        updatedrand();
+      }
+      break;
+
+    case 3: // Finished
+      if ((x>=110) && (x<=325) && (y>=600) && (y<=680))
+      {
+//        var a=rng();
+        gs.state=2;
+        resetgame();
+      }
+      break;
+      
+    default:
+      break;
   }
 }
 
 // Attract
 function attract(percent)
 {
-  gs.uicanvas.style.transform="scale("+gs.boardscale+") translate(0px, "+(percent<50?Math.floor((percent/4)):Math.floor((25-(percent/4))))+"px)";
+  gs.uicanvas.style.transform="scale("+gs.boardscale+") translate(0px, "+(percent<50?Math.floor((percent/8)):Math.floor((12-(percent/8))))+"px)";
 }
 
 // Show ui
@@ -91,10 +112,50 @@ function showui()
   switch (gs.state)
   {
     case 0: // Intro
-      gs.state=2; showui(); // TODO
+      gs.state=1; showui(); // TODO
       break;
 
     case 1: // Menu
+      gs.uictx.clearRect(0, 0, xmax, ymax);
+      gs.uicanvas.style.zIndex=3;
+
+      gs.uictx.fillStyle="rgba(0,0,0,0.8)";
+      gs.uictx.fillRect(0, 0, xmax, ymax);
+      gs.uictx.fillStyle="black";
+
+      // Draw PLAY and PLAY decentralised button
+      var grd=gs.uictx.createLinearGradient(110, 100, 110, 180);
+      grd.addColorStop(0, "#fceb08");
+      grd.addColorStop(0.5, "#f2137b");
+      grd.addColorStop(1, "#25145a");
+
+      gs.uictx.fillStyle=grd;
+      gs.uictx.fillRect(110, 100, 215, 80);
+      
+      gs.uictx.font="bold 52px Arial";
+      gs.uictx.fillStyle="white";
+      gs.uictx.fillText("PLAY", 145, 160);
+      gs.uictx.fillStyle="black";
+
+      var grd2=gs.uictx.createLinearGradient(110, 300, 110, 380);
+      grd2.addColorStop(0, "#0b68a4");
+      grd2.addColorStop(0.48, "#c1eaf8");
+      grd2.addColorStop(0.5, "#ffffff");
+      grd2.addColorStop(0.52, "#9b3c0a");
+      grd2.addColorStop(0.75, "#fcca31");
+      grd2.addColorStop(0.99, "#fbe69d");
+      grd2.addColorStop(1, "#ffffff");
+
+      gs.uictx.fillStyle=grd2;
+      gs.uictx.fillRect(110, 300, 215, 80);
+      
+      gs.uictx.fillStyle="white";
+      gs.uictx.font="bold 52px Arial";
+      gs.uictx.fillText("PLAY", 145, 350);
+      gs.uictx.fillStyle="#f2137b";
+      gs.uictx.font="bold 14px Arial";
+      gs.uictx.fillText("decentralised", 165, 370);
+      gs.uictx.fillStyle="black";
       break;
 
     case 2: // InPlay
@@ -104,8 +165,8 @@ function showui()
     case 3: // Finished
       gs.uictx.clearRect(0, 0, xmax, ymax);
       gs.uicanvas.style.zIndex=3;
-      // Draw result and retry button
 
+      // Draw result and retry button
       var grd=gs.uictx.createLinearGradient(110, 600, 110, 680);
       grd.addColorStop(0, "#262262");
       grd.addColorStop(1, "#ef2d76");
@@ -117,11 +178,11 @@ function showui()
       gs.uictx.fillStyle="white";
       gs.uictx.fillText("PLAY AGAIN", 115, 650);
       gs.uictx.fillStyle="black";
+
       gs.timeline.reset();
       gs.timeline.add(1000, undefined);
       gs.timeline.addcallback(attract);
       gs.timeline.begin(0); // Loop continuously
-      gs.uicanvas.addEventListener('click', function(event) { uiclick(event.pageX, event.pageY); }, false);
       break;
 
     default:
@@ -463,11 +524,15 @@ function generateboard()
 // Use a decentralised random number source for seeding prng
 function updatedrand()
 {
+  // Stop using frame based advance of pRNG
+  gs.usingdrand=true;
+
   // Set up
   return new Promise(function(resolve, reject)
     {
       var req = new XMLHttpRequest();
 
+      req.timeout=5000;
       req.open('GET', 'https://api.drand.sh/public/latest', true);
 
       // AJAX request has changed state
@@ -488,14 +553,27 @@ function updatedrand()
               rng.s3=parseInt(res.randomness.substr(8,4), 16);
             }
 
-            catch(e) {}
+            catch(e)
+            {
+              gs.usingdrand=false;
+            }
           }
+          else
+            gs.usingdrand=false;
+
+          gs.state=2;
+          resetgame();
         }
       };
 
       // Something went wrong
       req.onerror = function()
       {
+        // drand failed, so fallback to pRNG
+        gs.usingdrand=false;
+        
+        gs.state=2;
+        resetgame();
       };
 
       // Fire off the AJAX call
@@ -709,6 +787,7 @@ function startup()
   gs.uictx.mozimageSmoothingEnabled=false;
     
   gs.boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
+  gs.uicanvas.addEventListener('click', function(event) { uiclick(event.pageX, event.pageY); }, false);
 
   resetgame();
   
