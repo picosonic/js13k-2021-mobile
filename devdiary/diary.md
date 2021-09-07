@@ -62,3 +62,15 @@ Refactoring to draw more to the same canvas.
 Keep game board portrait and scale appropriately.
 
 Show arsenal and enemies graphically.
+
+7th September
+-------------
+Updated timeline lib to add callbacks being called with percentage complete.
+
+Added UI canvas.
+
+Added game state machine.
+
+Improved look of record of best score and play again prompt.
+
+Keep track of [drand](https://drand.love/) usage (decentralised RNG beacon).

@@ -28,7 +28,9 @@ var gs={
   // HTML5 canvases and their contexts
   boardcanvas:null,
   boardctx:null,
-
+  uicanvas:null,
+  uictx:null,
+  
   // Position offsets
   boardx:0,
   boardy:65,
@@ -40,11 +42,16 @@ var gs={
   // SVG sprites converted to bitmaps
   sprites:new spritelib(),
 
-  img:new Image(),
-
+  // Device orientation
   devorientation:"landscape",
 
+  // Timeline library used for animation
   timeline:new timelineobj(),
+  
+  // If using drand decentralised random beacon
+  usingdrand:false,
+  
+  state:0, // 0=Intro 1=Menu 2=InPlay 3=Finished
 };
 
 // Lookup for board position in 2D array
@@ -53,21 +60,115 @@ function boardpos(x, y)
   return (y*dimension)+x;
 }
 
-// Show a new status string
-function showstatus(statusstr)
+function uiclick(cx, cy)
 {
-  document.getElementById("status").innerHTML=statusstr;
+  var x=cx-(gs.uicanvas.offsetLeft+gs.uicanvas.clientLeft);
+  var y=cy-(gs.uicanvas.offsetTop+gs.uicanvas.clientTop);
+
+  // Recalibrate to remove scaling of ui
+  x/=gs.boardscale;
+  y/=gs.boardscale;
+
+  if (gs.state==3)
+  {
+    if ((x>=110) && (x<=325) && (y>=600) && (y<=680))
+    {
+      gs.state=2;
+      resetgame();
+    }
+  }
+}
+
+// Attract
+function attract(percent)
+{
+  gs.uicanvas.style.transform="scale("+gs.boardscale+") translate(0px, "+(percent<50?Math.floor((percent/4)):Math.floor((25-(percent/4))))+"px)";
+}
+
+// Show ui
+function showui()
+{
+  switch (gs.state)
+  {
+    case 0: // Intro
+      gs.state=2; showui(); // TODO
+      break;
+
+    case 1: // Menu
+      break;
+
+    case 2: // InPlay
+      clearui();
+      break;
+
+    case 3: // Finished
+      gs.uictx.clearRect(0, 0, xmax, ymax);
+      gs.uicanvas.style.zIndex=3;
+      // Draw result and retry button
+
+      var grd=gs.uictx.createLinearGradient(110, 600, 110, 680);
+      grd.addColorStop(0, "#262262");
+      grd.addColorStop(1, "#ef2d76");
+
+      gs.uictx.fillStyle=grd;
+      gs.uictx.fillRect(110, 600, 215, 80);
+      
+      gs.uictx.font="bold 34px Arial";
+      gs.uictx.fillStyle="white";
+      gs.uictx.fillText("PLAY AGAIN", 115, 650);
+      gs.uictx.fillStyle="black";
+      gs.timeline.reset();
+      gs.timeline.add(1000, undefined);
+      gs.timeline.addcallback(attract);
+      gs.timeline.begin(0); // Loop continuously
+      gs.uicanvas.addEventListener('click', function(event) { uiclick(event.pageX, event.pageY); }, false);
+      break;
+
+    default:
+      gs.state=0; showui();
+      break;
+  }
+}
+
+// Clear ui and demote Z-index
+function clearui()
+{
+  gs.uictx.clearRect(0, 0, xmax, ymax);
+  gs.uicanvas.style.zIndex=1;
+
+  gs.timeline.end();
+  gs.uicanvas.style.transform="scale("+gs.boardscale+")";
 }
 
 // Show best use of ammo to clear everything
 function showrecord()
 {
-  var recordstr="";
-
   if (gs.record>0)
-    recordstr="Record "+gs.record;
+  {
+    var h=20;
+    var w=115;
+    var x=280;
+    var y=530;
+    var fs=Math.floor(h*0.9);
+    var recordstr="RECORD "+gs.record;
+    var grd=gs.boardctx.createLinearGradient(x, y, x, y+h);
+    grd.addColorStop(0, "#ffed41");
+    grd.addColorStop(1, "#febf04");
 
-  document.getElementById("record").innerHTML=recordstr;
+    gs.boardctx.save();
+
+    gs.boardctx.clearRect(x-8, y-8, w+16, h+16);
+    gs.boardctx.fillStyle=grd;
+    gs.boardctx.shadowColor="rgba(0,0,0,0.8)";
+    gs.boardctx.shadowBlur=5;
+    gs.boardctx.fillRect(x, y, w, h);
+
+    gs.boardctx.restore();
+
+    gs.boardctx.font="bold "+fs+"px Arial";
+    gs.boardctx.fillStyle="black";
+    gs.boardctx.fillText(recordstr, x+5, y+fs-1);
+  }
 }
 
 // Show what ammo we have
@@ -142,8 +243,6 @@ function showenemies()
 // Check for game being complete
 function checkfinished()
 {
-  var statusstr="";
-
   // Check for end of game
   if ((checkfound()==3) || (gs.arsenal.used==gs.arsenal.total))
   {
@@ -152,7 +251,6 @@ function checkfinished()
 
     if (checkfound()==3)
     {
-      statusstr="COMPLETED - WELL DONE";
       if ((gs.arsenal.used<gs.record) || (gs.record==0))
       {
         gs.record=gs.arsenal.used;
@@ -164,12 +262,9 @@ function checkfinished()
         showrecord();
       }
     }
-    else
-      statusstr="TRY AGAIN";
+    gs.state=3;
 
-    statusstr+=" <button onclick='resetgame()'>MORE</button>";
-
-    showstatus(statusstr);
+    showui();
   }
 }
 
@@ -446,7 +541,7 @@ function resetgame()
 
   showrecord();
 
-  showstatus("");
+  showui();
 }
 
 // Action a browser resize
@@ -483,7 +578,12 @@ function resize()
   gs.threedee.canvas.style.left=left+"px";
   gs.threedee.canvas.style.transformOrigin='0 0';
   gs.threedee.canvas.style.transform='scale('+(height/ymax)+')';
-  
+
+  gs.uicanvas.style.top=top+"px";
+  gs.uicanvas.style.left=left+"px";
+  gs.uicanvas.style.transformOrigin='0 0';
+  gs.uicanvas.style.transform='scale('+(height/ymax)+')';
+
   gs.boardscale=(width/xmax);
 }
 
@@ -561,8 +661,15 @@ function drawspill(x, y, style)
 // Move on to next number in pRNG generation
 function advancerng()
 {
-  var a=rng();
+  if (!gs.usingdrand)
+  {
+    var a=rng();
+  }
+
+  // Show the board to get splat animations
   showboard();
+  
+  // Request that we are called again on the next frame
   window.requestAnimationFrame(advancerng);
 }
 
@@ -592,10 +699,15 @@ function startup()
   gs.boardcanvas=document.getElementById("board");
   gs.boardctx=gs.boardcanvas.getContext("2d");
 
+  gs.uicanvas=document.getElementById("ui");
+  gs.uictx=gs.uicanvas.getContext("2d");
+
   // Make sure we pixelate upon scaling
   gs.boardctx.imageSmoothingEnabled=false;
   gs.boardctx.mozimageSmoothingEnabled=false;
-  
+  gs.uictx.imageSmoothingEnabled=false;
+  gs.uictx.mozimageSmoothingEnabled=false;
+    
   gs.boardcanvas.addEventListener('click', function(event) { canvasclick(event.pageX, event.pageY); }, false);
 
   resetgame();

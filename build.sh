@@ -41,7 +41,7 @@ echo -n '</style><script type="text/javascript">' >> "${indexcat}"
 ./closeyoureyes.sh "${jscat}" >> "${indexcat}"
 
 # Add on the rest of the index file
-echo -n '</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/></head><body><div id="wrapper"><canvas id="threedee" width="400" height="711"></canvas><canvas id="board" width="400" height="711"></canvas><div id="info"><div id="record"></div><div id="status"></div></div></div></body></html>' >> "${indexcat}"
+echo -n '</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/></head><body><div id="wrapper"><canvas id="threedee" width="400" height="711"></canvas><canvas id="board" width="400" height="711"></canvas><canvas id="ui" width="400" height="711"></canvas></div></body></html>' >> "${indexcat}"
 
 # Remove the minified JS
 rm "${jscat}" >/dev/null 2>&1
