@@ -28,6 +28,8 @@ var gs={
   // HTML5 canvases and their contexts
   boardcanvas:null,
   boardctx:null,
+  fxcanvas:null,
+  fxctx:null,
   uicanvas:null,
   uictx:null,
   
@@ -47,9 +49,14 @@ var gs={
 
   // Timeline library used for animation
   timeline:new timelineobj(),
+  fxtimeline:new timelineobj(),
   
   // If using drand decentralised random beacon
   usingdrand:false,
+  
+  // Confetti piece tracker
+  confetti:[],
+  confettitype:0,
   
   state:0, // 0=Intro 1=Menu 2=InPlay 3=Finished
 };
@@ -89,7 +96,7 @@ function uiclick(cx, cy)
     case 3: // Finished
       if ((x>=110) && (x<=325) && (y>=600) && (y<=680))
       {
-//        var a=rng();
+        stopconfetti();
         gs.state=2;
         resetgame();
       }
@@ -98,6 +105,74 @@ function uiclick(cx, cy)
     default:
       break;
   }
+}
+
+// Completion confetti
+function confetti(percent)
+{
+  const goldconfetti=["#d4af37", "#ffd700", "#b8860b", "#ffcc33"];
+  const standardconfetti=["#262262", "#18d618", "#ef2d76", "#f2ea02", "#fd1c03", "#33ff00"];
+  
+  gs.fxctx.clearRect(0, 0, xmax, ymax);
+
+  for (var i=0; i<gs.confetti.length; i++)
+  {
+    // Move based on acceleration
+    gs.confetti[i].x+=gs.confetti[i].xa;
+    gs.confetti[i].y+=gs.confetti[i].ya;
+    
+    // If it's gone out of shot, fire it again
+    if ((gs.confetti[i].x<0) || (gs.confetti[i].x>xmax) || (gs.confetti[i].y>ymax))
+      gs.confetti[i]={x:xmax/2, y:ymax, xa:(rng()*6)-3, ya:0-(rng()*20), c:rng()*10};
+    
+    // Apply gravity
+    gs.confetti[i].ya+=0.25;
+
+    if (gs.confettitype==0)
+      gs.fxctx.fillStyle=goldconfetti[Math.floor(gs.confetti[i].c)%goldconfetti.length];
+    else
+      gs.fxctx.fillStyle=standardconfetti[Math.floor(gs.confetti[i].c)%standardconfetti.length];
+
+    // Draw piece    
+    gs.fxctx.beginPath();
+    gs.fxctx.moveTo(gs.confetti[i].x-5, gs.confetti[i].y-5);
+    gs.fxctx.lineTo(gs.confetti[i].x+5, gs.confetti[i].y-5);
+    
+    if (rng()<0.5)
+      gs.fxctx.lineTo(gs.confetti[i].x, gs.confetti[i].y+5);
+    else
+      gs.fxctx.lineTo(gs.confetti[i].x, gs.confetti[i].y-10);
+      
+    gs.fxctx.closePath();
+    gs.fxctx.fill();
+  }
+}
+
+function startconfetti()
+{
+  // Bring confetti forwards
+  gs.fxcanvas.style.zIndex=3;
+  
+  // Clear any old confetti
+  gs.confetti=[];
+  gs.fxtimeline.end();
+
+  // Generate confetti pieces
+  for (var i=0; i<75; i++)
+    gs.confetti.push({x:xmax/2, y:ymax, xa:(rng()*6)-3, ya:0-(rng()*20), c:rng()*10});
+  
+  // Start animation
+  gs.fxtimeline.reset();
+  gs.fxtimeline.add(10000, undefined);
+  gs.fxtimeline.addcallback(confetti);
+  gs.fxtimeline.begin(0); // Loop continuously
+}
+
+function stopconfetti()
+{
+  gs.fxtimeline.end();
+  gs.fxctx.clearRect(0, 0, xmax, ymax);
+  gs.fxcanvas.style.zIndex=1;
 }
 
 // Attract
@@ -117,7 +192,7 @@ function showui()
 
     case 1: // Menu
       gs.uictx.clearRect(0, 0, xmax, ymax);
-      gs.uicanvas.style.zIndex=3;
+      gs.uicanvas.style.zIndex=4;
 
       gs.uictx.fillStyle="rgba(0,0,0,0.8)";
       gs.uictx.fillRect(0, 0, xmax, ymax);
@@ -164,7 +239,7 @@ function showui()
 
     case 3: // Finished
       gs.uictx.clearRect(0, 0, xmax, ymax);
-      gs.uicanvas.style.zIndex=3;
+      gs.uicanvas.style.zIndex=4;
 
       // Draw result and retry button
       var grd=gs.uictx.createLinearGradient(110, 600, 110, 680);
@@ -329,6 +404,7 @@ function checkfinished()
     {
       if ((gs.arsenal.used<gs.record) || (gs.record==0))
       {
+        gs.confettitype=0;
         gs.record=gs.arsenal.used;
         try
         {
@@ -337,6 +413,10 @@ function checkfinished()
         catch (e) {}
         showrecord();
       }
+      else
+       gs.confettitype=1;
+       
+      startconfetti();
     }
     gs.state=3;
 
@@ -672,6 +752,11 @@ function resize()
   gs.threedee.canvas.style.transformOrigin='0 0';
   gs.threedee.canvas.style.transform='scale('+(height/ymax)+')';
 
+  gs.fxcanvas.style.top=top+"px";
+  gs.fxcanvas.style.left=left+"px";
+  gs.fxcanvas.style.transformOrigin='0 0';
+  gs.fxcanvas.style.transform='scale('+(height/ymax)+')';
+
   gs.uicanvas.style.top=top+"px";
   gs.uicanvas.style.left=left+"px";
   gs.uicanvas.style.transformOrigin='0 0';
@@ -792,6 +877,9 @@ function startup()
   gs.boardcanvas=document.getElementById("board");
   gs.boardctx=gs.boardcanvas.getContext("2d");
 
+  gs.fxcanvas=document.getElementById("fx");
+  gs.fxctx=gs.fxcanvas.getContext("2d");
+  
   gs.uicanvas=document.getElementById("ui");
   gs.uictx=gs.uicanvas.getContext("2d");
 

@@ -52,7 +52,12 @@ canvas
   z-index:1;
 }
 
+#fx
+{
+  z-index:1;
+}
+
 #ui
 {
-  z-index:3;
+  z-index:4;
 }
