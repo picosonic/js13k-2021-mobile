@@ -78,3 +78,9 @@ Keep track of [drand](https://drand.love/) usage (decentralised RNG beacon).
 Added initial choice between normal and decentralised RNG, with fallback on error.
 
 Added display of missed shots.
+
+8th September
+-------------
+Added confetti upon completion.
+
+Added screenshots.
