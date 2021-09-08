@@ -46,6 +46,6 @@ Optimised for mobile in portrait. At the start you have the choice of using a Pr
 
 # Attribution of assets
 
-_Using some assets from [Kenney.nl "Minigolf Kit"](https://kenney.nl/assets/minigolf-kit) (Creative Commons Zero, CC0 license)._
+_Using some assets from [Kenney.nl "Space Shooter Extension"](https://www.kenney.nl/assets/space-shooter-extension) (Creative Commons Zero, CC0 license)._
 
 _Using code inspired by following a [tutorial](https://www.youtube.com/watch?v=XgMWc6LumG4) from @Javidx9._
