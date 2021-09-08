@@ -42,7 +42,7 @@ Optimised for mobile in portrait. At the start you have the choice of using a Pr
 - [ ] More animations and special effects
 - [ ] Sound effects and music track
 - [ ] Dripping splats
-- [ ] Invetigate WebGL instead of canvas
+- [ ] Investigate WebGL instead of canvas
 
 # Attribution of assets
 
