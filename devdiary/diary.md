@@ -84,3 +84,25 @@ Added display of missed shots.
 Added confetti upon completion.
 
 Added screenshots.
+
+Looking back
+------------
+This was a fun game to make as I'd wanted to do a mobile first game that I could play on-the-go for a while.
+
+I started with a top down view of an 8x8 grid onto which are randomly placed entities of 2, 3 and 4 gridsquares long in either vertical or horizontal alignment. The algorithm for the positioning of these and the RNG used were based on the minigame [Sploosh Kaboom](https://www.youtube.com/watch?v=1hs451PfFzQ) in [The Legend of Zelda: The Wind Waker](https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_The_Wind_Waker) and the videos on creating a tool to use in speedruns.
+
+I then had the idea to mix things up a bit by using splats of paint like in [Splatoon](https://www.nintendo.com/games/detail/splatoon-2-switch/) which you fire from above onto the grid and different colours would indicate hits or misses of the hidden entities. The splats have a large central circular splat, then 11 smaller splats which eminate from teh centre of the large splat at random postions (30' apart - like on a clock face), and at random sizes ranging from 7% to 24% of the size of the central splat. These smaller splats then leave trails as they move away from the central splat to their target resting position of between 56% and 75% of the central circle size. As they travel along this path their size decreases slightly then back up again to leave a stretched out streak of paint.
+
+I had very simple indicators of the number of shorts used and the number of whole entities uncovered, so then went on to stylise those as an arsenal of splat missiles which change to black and white upon use, and a set of spaceships which also go black and white once all their component grid squares have been discovered.
+
+My son indicated in play testing that it felt unfair that when you got a hit that it counted against you as there was not real reward for finding them. So I adjusted the logic so that only misses are counted.
+
+I decided to write a mini sprite library so that I could draw SVG elements and make them look pixelated, I wrote some code to render the SVG to an image via an XML serializer into a data url with b64 encoding. This worked quite well once I'd got the callbacks and timings working correctly.
+
+The craters in the background are actually fully formed 3D models generated on the fly based on a real crater side profile which is rotated around a central point. I did originally want to tilt this up and down slightly as the game played out, to give you a sense of depth. I was also going to create some simple 3D models of rocks or satellites to drift across your view and use the 3D library for those. Ultimately I decided these may be too busy/distracting.
+
+Given that this year there was a new decentralised cateogry, I wanted to see if I could include some element of this into my game. I decided to use the [drand](https://drand.love/) (decentralised RNG beacon) as a source of entropy to feed my pRNG with a set of initial values which then go on to place the entities and form the splat generation algorithm.
+
+Once I had a way to play and either win/fail with a retry, I decided that there should be some form of celebration. Having played [Triska Reloaded](https://triska.js13kgames.com/) the JS13k 10th year anniversary game I loved the confetti effect upon getting a new height record. So I added a confetti fountain which is gold for new records or multi-coloured for just finding all the hidden entities in any amount of missed splats.
+
+Plus your best score is stored in localStorage to give you something to beat next time you play.
